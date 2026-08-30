@@ -72,6 +72,11 @@
   var raceRows = {};         // guestId -> 排名行节点（增量更新用）
   var prizeTabsKey = '';     // 奖项 tab 的脏检查 key
   var winnersKey = '';       // 中奖名单的脏检查 key
+  var isWsMode = !!(new URLSearchParams(location.search).get('ws'));
+  var audioEl = null;        // 背景音乐
+  var musicPlaying = false;
+  var pendingPhotos = {};    // 设置面板未保存的照片（key: bg/couple/logo → url 或 base64）
+  var pendingMusic = '';
 
   /* ==================== 初始化 ==================== */
 
@@ -135,6 +140,8 @@
     var s = store.getState();
     renderHeader(s);
     syncDanmaku(s);
+    syncVisuals(s);
+    syncMusic(s);
     renderWall(s, first);
     renderBlessings(s);
     renderStats(s);
@@ -168,6 +175,81 @@
     var want = !(s.config && s.config.danmaku === false);
     danmakuOn = want;
     $('btnDanmaku').style.opacity = want ? '1' : '.45';
+  }
+
+  /** 视觉定制应用（M2-1）：背景图 / 合照 / logo */
+  function syncVisuals(s) {
+    var p = (s.config && s.config.photos) || {};
+    var body = document.body;
+
+    if (p.bg) {
+      body.style.backgroundImage =
+        'linear-gradient(rgba(20,4,8,.45), rgba(20,4,8,.6)), url("' + p.bg + '")';
+      body.style.backgroundSize = 'cover';
+      body.style.backgroundPosition = 'center';
+    } else {
+      body.style.backgroundImage = '';
+      body.style.backgroundSize = '';
+      body.style.backgroundPosition = '';
+    }
+
+    var couple = $('couplePhoto');
+    if (couple) {
+      couple.style.display = p.couple ? 'block' : 'none';
+      couple.style.backgroundImage = p.couple ? 'url("' + p.couple + '")' : '';
+    }
+    var logo = $('logoImg');
+    if (logo) {
+      logo.style.display = p.logo ? 'block' : 'none';
+      logo.style.backgroundImage = p.logo ? 'url("' + p.logo + '")' : '';
+    }
+  }
+
+  /** 背景音乐同步（M2-2）：单曲循环，播放/暂停由顶栏 🎵 控制 */
+  function syncMusic(s) {
+    var src = (s.config && s.config.music) || '';
+    if (!src) {
+      if (audioEl) { audioEl.pause(); }
+      musicPlaying = false;
+      $('btnMusic').style.opacity = '.45';
+      return;
+    }
+    $('btnMusic').style.opacity = '1';
+    if (!audioEl) {
+      audioEl = new Audio();
+      audioEl.loop = true;
+      audioEl.preload = 'auto';
+    }
+    if (audioEl.getAttribute('data-src') !== src) {
+      audioEl.setAttribute('data-src', src);
+      audioEl.src = src;
+      // 换曲后保持播放状态
+      if (musicPlaying) {
+        audioEl.play().catch(function () { musicPlaying = false; });
+      }
+    }
+  }
+
+  /**
+   * 资源上传（M2-1/M2-2）：ws 模式 POST /upload 存服务端返回 URL；
+   * 单机模式直接保留 base64（照片压缩后可控；音频在单机模式不支持）。
+   */
+  function uploadResource(dataUrl) {
+    return new Promise(function (resolve) {
+      if (!isWsMode) { resolve(dataUrl); return; }
+      fetch(location.origin + '/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: dataUrl })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (j) {
+        resolve(j.url || dataUrl);
+      }).catch(function () {
+        resolve(dataUrl); // 降级
+      });
+    });
   }
 
   function renderStats(s) {
@@ -801,8 +883,31 @@
     $('cfgSub').value = s.config.date || '';
     $('swReview').classList.toggle('on', !!s.config.needReview);
     $('swDanmaku').classList.toggle('on', !(s.config && s.config.danmaku === false));
+
+    // 视觉与音乐：编辑期用 pending 副本，保存时才写入共享 state
+    var p = s.config.photos || {};
+    pendingPhotos = { bg: p.bg || '', couple: p.couple || '', logo: p.logo || '' };
+    pendingMusic = s.config.music || '';
+    renderPhotoThumbs();
+    $('musicName').textContent = pendingMusic ? '已选音乐（保存后生效）' : '';
+    $('musicTip').textContent = isWsMode
+      ? '上传后循环播放，可在顶栏 🎵 控制'
+      : '⚠ 背景音乐需要「服务器模式」：双击 deploy.bat 后用局域网地址打开大屏';
+
     renderPrizeEditor(s.config.prizes);
     $('settingsModal').classList.remove('hidden');
+  }
+
+  function renderPhotoThumbs() {
+    [['bg', 'thumbBg'], ['couple', 'thumbCouple'], ['logo', 'thumbLogo']].forEach(function (pair) {
+      var key = pair[0];
+      var el = $(pair[1]);
+      if (!el) return;
+      var v = pendingPhotos[key];
+      el.classList.toggle('has-img', !!v);
+      el.style.backgroundImage = v ? 'url("' + v + '")' : '';
+      el.innerHTML = v ? '' : (key === 'bg' ? '背景图' : (key === 'couple' ? '合照' : 'Logo'));
+    });
   }
 
   function closeSettings() {
@@ -875,6 +980,8 @@
         date: ($('cfgSub').value || '').trim(),
         needReview: $('swReview').classList.contains('on'),
         danmaku: $('swDanmaku').classList.contains('on'),
+        photos: pendingPhotos,
+        music: pendingMusic,
         prizes: prizes
       });
 
@@ -923,6 +1030,211 @@
         lastBlessingCount = 0;
       }
     });
+
+    bindVisualUploads();
+    bindMusicToggle();
+    bindExports();
+  }
+
+  /* ==================== 视觉与音乐上传（M2-1 / M2-2） ==================== */
+
+  function bindVisualUploads() {
+    var photoKeys = { fileBg: 'bg', fileCouple: 'couple', fileLogo: 'logo' };
+    Object.keys(photoKeys).forEach(function (fileId) {
+      var key = photoKeys[fileId];
+      $(fileId).addEventListener('change', function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        UI.toast('正在处理图片…');
+        UI.compressImage(file, 1200, function (dataUrl, err) {
+          if (err) { UI.toast('图片处理失败：' + err); return; }
+          uploadResource(dataUrl).then(function (finalUrl) {
+            pendingPhotos[key] = finalUrl;
+            renderPhotoThumbs();
+            UI.toast('已选' + (key === 'bg' ? '背景图' : (key === 'couple' ? '合照' : 'Logo')) + '，保存后生效');
+          });
+        });
+        e.target.value = '';
+      });
+    });
+
+    [['delBg', 'bg'], ['delCouple', 'couple'], ['delLogo', 'logo']].forEach(function (pair) {
+      $(pair[0]).addEventListener('click', function () {
+        pendingPhotos[pair[1]] = '';
+        renderPhotoThumbs();
+      });
+    });
+
+    // 背景音乐
+    $('fileMusic').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!/^audio\//.test(file.type)) { UI.toast('请选择音频文件（MP3 等）'); return; }
+      if (!isWsMode) {
+        UI.toast('背景音乐需要服务器模式：先用 deploy.bat 启动服务');
+        return;
+      }
+      UI.toast('正在上传音乐（大文件稍等）…');
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        uploadResource(ev.target.result).then(function (finalUrl) {
+          pendingMusic = finalUrl;
+          $('musicName').textContent = '已选音乐（保存后生效）';
+          UI.toast('音乐已上传，保存后生效');
+        });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    $('delMusic').addEventListener('click', function () {
+      pendingMusic = '';
+      $('musicName').textContent = '';
+    });
+  }
+
+  function bindMusicToggle() {
+    $('btnMusic').addEventListener('click', function () {
+      var s = store.getState();
+      var src = s.config.music;
+      if (!src) { UI.toast('请先在 ⚙ 设置里上传背景音乐'); return; }
+      if (!audioEl) syncMusic(s);
+      if (!audioEl) return;
+      if (audioEl.paused) {
+        audioEl.play().then(function () {
+          musicPlaying = true;
+          $('btnMusic').textContent = '⏸';
+        }).catch(function () {
+          UI.toast('浏览器阻止了自动播放，请再点一次');
+        });
+      } else {
+        audioEl.pause();
+        musicPlaying = false;
+        $('btnMusic').textContent = '🎵';
+      }
+    });
+  }
+
+  /* ==================== 数据导出（M2-3） ==================== */
+
+  function bindExports() {
+    $('btnExportJson').addEventListener('click', function () {
+      var s = store.getState();
+      var blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, 'wedding-data-' + Date.now() + '.json');
+      UI.toast('JSON 已导出');
+    });
+
+    $('btnExportWall').addEventListener('click', function () {
+      var s = store.getState();
+      var approved = s.blessings.filter(function (b) { return b.approved; });
+      if (!approved.length) { UI.toast('还没有上墙的祝福'); return; }
+      buildBlessingWallImage(s, approved);
+    });
+  }
+
+  function downloadBlob(blob, filename) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 500);
+  }
+
+  /**
+   * 祝福纪念长图：canvas 绘制，每张卡片一条祝福，导出 PNG（适合发朋友圈/打印）。
+   */
+  function buildBlessingWallImage(s, blessings) {
+    UI.toast('正在生成祝福长图…');
+    var W = 1080;
+    var cardH = 132;
+    var headerH = 300;
+    var pad = 56;
+    var H = headerH + blessings.length * cardH + pad * 2;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    // 背景渐变
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#4a1523');
+    grad.addColorStop(1, '#2e0b13');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 顶部标题
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#f3dda1';
+    ctx.font = 'bold 54px "Songti SC", "SimSun", serif';
+    ctx.fillText((s.config.groom || '新郎') + ' ♥ ' + (s.config.bride || '新娘'), W / 2, 120);
+    ctx.font = '28px sans-serif';
+    ctx.fillStyle = 'rgba(255,248,240,.75)';
+    ctx.fillText('大家的祝福 · ' + blessings.length + ' 条', W / 2, 176);
+    ctx.fillText('『 ' + (s.config.date || '婚礼现场') + ' 』', W / 2, 226);
+
+    // 每条祝福卡片
+    ctx.textAlign = 'left';
+    blessings.forEach(function (b, i) {
+      var y = headerH + i * cardH + pad * 0.4;
+      // 卡片背景
+      ctx.fillStyle = 'rgba(255,255,255,.06)';
+      roundRect(ctx, pad, y, W - pad * 2, cardH - 16, 16);
+      ctx.fill();
+      // 名字
+      ctx.fillStyle = '#f3dda1';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText(b.name || '匿名宾客', pad + 30, y + 46);
+      // 祝福内容
+      ctx.fillStyle = '#fff8f0';
+      ctx.font = '30px sans-serif';
+      wrapText(ctx, b.text, pad + 30, y + 92, W - pad * 2 - 60, 38);
+    });
+
+    // 尾部
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,248,240,.5)';
+    ctx.font = '24px sans-serif';
+    ctx.fillText('—— 由 wedding-live 现场互动系统生成 ——', W / 2, H - 28);
+
+    canvas.toBlob(function (blob) {
+      if (!blob) { UI.toast('长图生成失败'); return; }
+      downloadBlob(blob, 'blessing-wall-' + Date.now() + '.png');
+      UI.toast('祝福长图已导出');
+    }, 'image/png');
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /** 简单多行文本绘制 */
+  function wrapText(ctx, text, x, y, maxW, lineH) {
+    var chars = String(text).split('');
+    var line = '';
+    var yy = y;
+    for (var i = 0; i < chars.length; i++) {
+      var test = line + chars[i];
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, x, yy);
+        line = chars[i];
+        yy += lineH;
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, x, yy);
   }
 
   /* ==================== 自适应 ==================== */

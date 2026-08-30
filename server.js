@@ -35,7 +35,7 @@ const AVATAR_DIR = path.join(DATA_DIR, 'avatars');
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
 const MAX_STATE_BYTES = 3 * 1024 * 1024;   // 单份 state 上限 3MB（头像未外置时的兜底）
-const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;  // 单张头像上限 2MB
+const MAX_UPLOAD_BYTES = 12 * 1024 * 1024; // 单次上传上限 12MB（背景音乐 mp3 常见 5-8MB）
 const STATE_MERGE_MS = 100;                // state 广播合并窗口
 const SCORES_MERGE_MS = 200;               // 摇分聚合广播周期
 
@@ -94,6 +94,9 @@ const MIME = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
+  '.mp3': 'audio/mpeg',
+  '.ogg': 'audio/ogg',
+  '.wav': 'audio/wav',
   '.json': 'application/json; charset=utf-8',
   '.ico': 'image/x-icon'
 };
@@ -118,7 +121,7 @@ const httpServer = http.createServer((req, res) => {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') urlPath = '/index.html';
 
-  /* -- 头像上传：POST /upload  body: {"data":"data:image/jpeg;base64,..."} -- */
+  /* -- 资源上传：POST /upload  body: {"data":"data:image/jpeg;base64,..." 或 audio -- */
   if (urlPath === '/upload' && req.method === 'POST') {
     let body = '';
     let tooLarge = false;
@@ -127,7 +130,7 @@ const httpServer = http.createServer((req, res) => {
       if (body.length > MAX_UPLOAD_BYTES && !tooLarge) {
         tooLarge = true;
         res.writeHead(413, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('image too large');
+        res.end('file too large');
         req.destroy();
       }
     });
@@ -135,25 +138,43 @@ const httpServer = http.createServer((req, res) => {
       if (tooLarge) return;
       try {
         const j = JSON.parse(body);
-        const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(j.data || '');
+        // 图片（头像/背景/合照）或音频（背景音乐）
+        const m = /^data:(image\/(jpeg|png|webp)|audio\/(mpeg|mp3|ogg|wav));base64,([A-Za-z0-9+/=]+)$/.exec(j.data || '');
         if (!m) {
           res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
-          res.end('invalid image data');
+          res.end('invalid data');
           return;
         }
-        const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
-        const file = 'avatar_' + Date.now().toString(36) +
-          '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
-        fs.mkdirSync(AVATAR_DIR, { recursive: true });
-        fs.writeFileSync(path.join(AVATAR_DIR, file), Buffer.from(m[2], 'base64'));
+        const kind = m[1].split('/')[0];           // image | audio
+        const sub = m[2];
+        const ext = sub === 'jpeg' ? 'jpg' : sub;
+        const dir = kind === 'image'
+          ? path.join(DATA_DIR, 'uploads')
+          : path.join(DATA_DIR, 'music');
+        const file = (kind === 'image' ? 'img_' : 'music_') +
+          Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, file), Buffer.from(m[3], 'base64'));
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ url: '/avatars/' + file }));
-        console.log('[upload] 已保存', file);
+        res.end(JSON.stringify({ url: (kind === 'image' ? '/uploads/' : '/music/') + file }));
+        console.log('[upload] 已保存', kind, file);
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('bad request');
       }
     });
+    return;
+  }
+
+  /* -- 上传资源访问：/uploads/* 与 /music/* -- */
+  if (urlPath.startsWith('/uploads/') || urlPath.startsWith('/music/')) {
+    const full = path.join(ROOT, urlPath);
+    if (!full.startsWith(DATA_DIR)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    serveFile(res, full);
     return;
   }
 

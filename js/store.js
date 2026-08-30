@@ -42,6 +42,9 @@
         needReview: false,
         // 祝福弹幕飘屏开关（共享，主持控台可切换）
         danmaku: true,
+        // 视觉与音乐定制（M2）：均为 URL 或 base64
+        photos: { bg: '', couple: '', logo: '' },
+        music: '',
         // 单个抽奖奖项
         prizes: [
           { id: 'p1', name: '三等奖', count: 5 },

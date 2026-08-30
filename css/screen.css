@@ -76,6 +76,64 @@ body.screen::before {
   margin-top: .35rem;
 }
 
+/* 新人合照（标题上方圆形相框，M2-1） */
+.couple-photo {
+  width: 5.2rem;
+  height: 5.2rem;
+  margin: 0 auto .4rem;
+  border-radius: 50%;
+  border: 3px solid var(--gold-light);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 0 .35rem rgba(212, 175, 55, .25), 0 8px 24px rgba(0, 0, 0, .35);
+}
+
+/* 角落 logo */
+.logo-img {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  border: 2px solid var(--gold-light);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+}
+
+/* 设置面板：照片与音乐上传 */
+.photo-row {
+  display: flex;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+.photo-slot {
+  flex: 1 1 8rem;
+  max-width: 9rem;
+  text-align: center;
+}
+.photo-thumb {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, .3);
+  border: 1px dashed rgba(212, 175, 55, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  color: rgba(255, 248, 240, .45);
+  font-size: .75rem;
+  overflow: hidden;
+}
+.photo-thumb.has-img { border-style: solid; }
+.photo-ops {
+  display: flex;
+  gap: .35rem;
+  justify-content: center;
+  margin-top: .4rem;
+}
+.photo-ops .btn-sm { padding: 3px 10px; font-size: .72rem; }
+
 .topbar-tools { display: flex; gap: .7rem; }
 
 .icon-btn {

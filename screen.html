@@ -11,12 +11,16 @@
 
   <!-- 顶栏 -->
   <header class="topbar">
-    <div style="width:8rem"></div>
+    <div style="width:8rem;position:relative">
+      <div id="logoImg" class="logo-img" style="display:none"></div>
+    </div>
     <div class="wedding-title">
+      <div id="couplePhoto" class="couple-photo" style="display:none"></div>
       <div class="names"><span id="groomName">新郎</span><span class="heart">♥</span><span id="brideName">新娘</span></div>
       <div class="sub" id="weddingSub">WEDDING PARTY</div>
     </div>
     <div class="topbar-tools">
+      <button class="icon-btn" id="btnMusic" title="背景音乐">🎵</button>
       <button class="icon-btn" id="btnDanmaku" title="弹幕开关">💬</button>
       <button class="icon-btn" id="btnSettings" title="设置">⚙</button>
       <button class="icon-btn" id="btnFullscreen" title="全屏">⛶</button>
@@ -151,6 +155,50 @@
         <input type="text" id="cfgSub" placeholder="如：2026.10.01 · 上海浦东香格里拉">
       </div>
 
+      <div class="field" style="margin-top:1.2rem">
+        <label>🎨 视觉定制（可选）</label>
+        <div class="photo-row">
+          <div class="photo-slot">
+            <div class="photo-thumb" id="thumbBg"><span>背景图</span></div>
+            <div class="photo-ops">
+              <label class="btn btn-ghost btn-sm" for="fileBg">上传</label>
+              <input type="file" id="fileBg" accept="image/*" style="display:none">
+              <button class="btn btn-ghost btn-sm" id="delBg">清除</button>
+            </div>
+          </div>
+          <div class="photo-slot">
+            <div class="photo-thumb" id="thumbCouple"><span>合照</span></div>
+            <div class="photo-ops">
+              <label class="btn btn-ghost btn-sm" for="fileCouple">上传</label>
+              <input type="file" id="fileCouple" accept="image/*" style="display:none">
+              <button class="btn btn-ghost btn-sm" id="delCouple">清除</button>
+            </div>
+          </div>
+          <div class="photo-slot">
+            <div class="photo-thumb" id="thumbLogo"><span>Logo</span></div>
+            <div class="photo-ops">
+              <label class="btn btn-ghost btn-sm" for="fileLogo">上传</label>
+              <input type="file" id="fileLogo" accept="image/*" style="display:none">
+              <button class="btn btn-ghost btn-sm" id="delLogo">清除</button>
+            </div>
+          </div>
+        </div>
+        <div class="m-tip" style="font-size:.75rem;color:rgba(255,248,240,.5);margin-top:.4rem">
+          背景图建议 1920×1080 横图；单机模式会压缩保存，服务器模式上传到 data/ 目录
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:1rem">
+        <label>🎵 背景音乐（可选，循环播放）</label>
+        <div class="row" style="gap:.6rem;flex-wrap:wrap">
+          <label class="btn btn-ghost btn-sm" for="fileMusic">上传 MP3</label>
+          <input type="file" id="fileMusic" accept="audio/*" style="display:none">
+          <span id="musicName" style="font-size:.8rem;opacity:.7"></span>
+          <button class="btn btn-ghost btn-sm" id="delMusic">清除</button>
+        </div>
+        <div class="m-tip" style="font-size:.75rem;color:rgba(255,248,240,.5);margin-top:.4rem" id="musicTip"></div>
+      </div>
+
       <div class="switch-row">
         <span>祝福需审核后才上墙</span>
         <div class="switch" id="swReview"></div>
@@ -164,6 +212,14 @@
         <label>奖项设置</label>
         <div id="prizeEditor"></div>
         <button class="btn btn-ghost btn-sm" id="btnAddPrize" style="margin-top:.5rem">+ 添加奖项</button>
+      </div>
+
+      <div class="field" style="margin-top:1.2rem">
+        <label>💾 数据导出（纪念留存）</label>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="btnExportJson">导出全部数据 JSON</button>
+          <button class="btn btn-ghost btn-sm" id="btnExportWall">导出祝福长图 PNG</button>
+        </div>
       </div>
 
       <div class="field" style="margin-top:1.2rem">

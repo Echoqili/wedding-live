@@ -135,6 +135,21 @@ iOS Safari 13+ 在**非 HTTPS** 网站下完全屏蔽 `devicemotion` 事件，�
 
 > 摇一摇的核心逻辑是「加速度变化触发计分」，点击是同等有效的兜底通道。本系统始终保留两种入口。
 
+### 视觉定制（M2）
+
+- ⚙ 设置 → 上传**背景图**（建议 1920×1080 横图，自动加暗化遮罩）、**新人合照**（大屏标题区圆形金边相框）、**Logo**（左上角）
+- 单机模式自动压缩保存；服务器模式存入 `data/uploads/`
+
+### 背景音乐（M2）
+
+- ⚙ 设置 → 上传 MP3 → 大屏顶栏 🎵 播放/暂停，单曲循环
+- 仅在**服务器模式**可用（mp3 不写入 localStorage）
+
+### 数据导出（M2）
+
+- ⚙ 设置 →「导出全部数据 JSON」：签到/祝福/中奖完整备份
+- ⚙ 设置 →「导出祝福长图 PNG」：canvas 生成纪念长图（可打印、可发朋友圈）
+
 ---
 
 ## 部署到生产
@@ -201,7 +216,11 @@ wedding-live/
 ├── index.html            入口引导页
 ├── screen.html           大屏端（主持人投屏用）
 ├── mobile.html           手机端（宾客扫码进入）
+├── host.html             主持手机控台（遥控大屏）
 ├── server.js             WebSocket 同步服务（生产用）
+├── deploy.bat            Windows 现场一键启动（双击即可）
+├── deploy.sh             Linux/pm2 云服务器部署
+├── WEDDING-RUNBOOK.md    婚礼当天操作手册（打印版）
 ├── package.json
 │
 ├── css/
@@ -237,6 +256,7 @@ wedding-live/
     ├── smoke.js          LocalStore 端到端冒烟测试（22 项）
     ├── smoke-ws.js       WebSocket 模式端到端测试（10 项）
     ├── smoke-host.js     主持控台端到端测试（10 项）
+    ├── smoke-m2.js       M2 功能测试（照片/导出，7 项）
     ├── load.js           100 并发压测（P0-1 验收）
     └── shots/            测试截图
 ```
