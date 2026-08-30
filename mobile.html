@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>婚礼互动 · 宾客端</title>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/mobile.css">
+</head>
+<body class="mobile">
+
+  <!-- ============ 签到页（未签到时显示） ============ -->
+  <div id="pageSignin">
+    <div class="m-header">
+      <div class="m-names"><span id="hdGroom">新郎</span><span class="heart">♥</span><span id="hdBride">新娘</span></div>
+      <div class="m-sub" id="hdSub">WEDDING PARTY</div>
+    </div>
+
+    <div class="m-wrap">
+      <div class="m-card">
+        <h3><span class="step">1</span>填写你的名字</h3>
+        <input type="text" class="m-input" id="inpName" placeholder="请输入姓名" maxlength="12" autocomplete="off">
+        <div class="m-tip" style="text-align:left;padding-left:.2rem">名字会显示在大屏的签到墙与抽奖名单上</div>
+      </div>
+
+      <div class="m-card">
+        <h3><span class="step">2</span>选一个头像</h3>
+        <div class="avatar-grid" id="avatarGrid"></div>
+        <div class="avatar-actions">
+          <label class="upload-btn" for="fileAvatar">📷 上传照片</label>
+          <input type="file" id="fileAvatar" accept="image/*" style="display:none">
+          <button class="upload-btn" id="btnRandomAvatar" style="flex:0 0 7rem">🎲 换一批</button>
+        </div>
+      </div>
+
+      <button class="m-btn m-btn-primary" id="btnSignin">进入婚礼现场</button>
+      <div class="m-tip" style="margin-top:1rem">签到后即可参与抽奖 · 送祝福 · 摇一摇</div>
+    </div>
+  </div>
+
+  <!-- ============ 主页（已签到后显示） ============ -->
+  <div id="pageMain" class="hidden">
+    <div class="m-header">
+      <div class="m-names"><span id="hdGroom2">新郎</span><span class="heart">♥</span><span id="hdBride2">新娘</span></div>
+      <div class="m-sub" id="hdSub2">WEDDING PARTY</div>
+    </div>
+
+    <div class="m-wrap">
+      <div class="m-tabs">
+        <button class="m-tab active" data-tab="bless">送祝福</button>
+        <button class="m-tab" data-tab="game">摇一摇</button>
+        <button class="m-tab" data-tab="me">我的</button>
+      </div>
+
+      <!-- 送祝福 -->
+      <section class="m-panel active" id="tabBless">
+        <div class="m-card">
+          <h3>💌 写下你的祝福</h3>
+          <div class="quick-list" id="quickList"></div>
+          <textarea class="m-textarea" id="inpBless" placeholder="想对新人说的话…" maxlength="60"></textarea>
+          <div class="counter"><span id="blessLen">0</span>/60</div>
+          <button class="m-btn m-btn-primary" id="btnSendBless" style="margin-top:1rem">发送到大屏</button>
+          <div class="m-tip" id="blessTip" style="margin-top:.8rem"></div>
+        </div>
+
+        <div class="m-card">
+          <h3>📜 我的祝福</h3>
+          <div id="myBlessList"><div class="m-tip">还没有发送过祝福</div></div>
+        </div>
+      </section>
+
+      <!-- 摇一摇 -->
+      <section class="m-panel" id="tabGame">
+        <div class="m-card">
+          <div class="shake-zone">
+            <div class="shake-circle" id="shakeCircle">
+              <div class="big-num" id="myScore">0</div>
+              <div class="unit">次</div>
+            </div>
+            <div class="shake-status" id="shakeStatus">等待主持人开始游戏</div>
+            <div class="m-tip" id="shakeTip"></div>
+            <div class="m-tip" id="rankHint"></div>
+          </div>
+        </div>
+        <div class="m-card">
+          <h3>🏆 实时排行</h3>
+          <div id="miniRank"><div class="m-tip">游戏开始后显示排名</div></div>
+        </div>
+      </section>
+
+      <!-- 我的 -->
+      <section class="m-panel" id="tabMe">
+        <div class="m-card me-card">
+          <div class="me-avatar" id="meAvatar"></div>
+          <div class="me-name" id="meName"></div>
+          <div><span class="me-tag">已签到 · 可参与抽奖</span></div>
+          <div id="winInfo"></div>
+        </div>
+
+        <div class="m-card">
+          <h3>👥 现场签到</h3>
+          <div style="font-size:1.6rem;font-weight:700;color:var(--wine)" id="totalGuests">0</div>
+          <div class="m-tip" style="text-align:left">位宾客已加入</div>
+        </div>
+
+        <button class="m-btn m-btn-ghost" id="btnEditProfile">修改名字 / 头像</button>
+      </section>
+    </div>
+  </div>
+
+  <div class="m-footer">婚礼现场互动 · 祝你玩得开心</div>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/remote-store.js"></script>
+  <script src="js/mobile.js"></script>
+</body>
+</html>

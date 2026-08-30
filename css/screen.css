@@ -1,0 +1,782 @@
+/* screen.css —— 大屏端（深色仪式感，适合投影 / LED 墙） */
+
+html {
+  /* 大屏基准字号跟随视口宽度，保证 1920 与 1366 下比例一致 */
+  font-size: clamp(13px, 1.02vw, 22px);
+}
+
+body.screen {
+  height: 100vh;
+  overflow: hidden;
+  color: var(--cream);
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(212, 175, 55, .18), transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(255, 143, 163, .14), transparent 55%),
+    linear-gradient(160deg, var(--wine-deep) 0%, var(--wine) 45%, #1a0509 100%);
+  position: relative;
+}
+
+/* 背景光晕装饰 */
+body.screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(243, 221, 161, .5), transparent),
+    radial-gradient(1px 1px at 78% 15%, rgba(243, 221, 161, .4), transparent),
+    radial-gradient(1.5px 1.5px at 45% 68%, rgba(243, 221, 161, .3), transparent),
+    radial-gradient(1px 1px at 88% 62%, rgba(243, 221, 161, .35), transparent),
+    radial-gradient(1px 1px at 30% 85%, rgba(243, 221, 161, .3), transparent);
+  pointer-events: none;
+  opacity: .6;
+}
+
+/* ------------------------------ 顶部 ------------------------------ */
+
+.topbar {
+  height: 9vh;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.2rem;
+  position: relative;
+  z-index: 20;
+}
+
+.wedding-title {
+  text-align: center;
+  flex: 1;
+}
+
+.wedding-title .names {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  background: linear-gradient(100deg, var(--gold-light), var(--gold), var(--gold-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1.2;
+}
+.wedding-title .names .heart {
+  color: var(--pink);
+  -webkit-text-fill-color: var(--pink);
+  margin: 0 .5rem;
+  font-size: 1.8rem;
+  animation: pulseGold 2.4s ease-in-out infinite;
+  border-radius: 50%;
+  display: inline-block;
+}
+.wedding-title .sub {
+  font-size: .95rem;
+  color: rgba(255, 248, 240, .62);
+  letter-spacing: .35em;
+  margin-top: .35rem;
+}
+
+.topbar-tools { display: flex; gap: .7rem; }
+
+.icon-btn {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(212, 175, 55, .3);
+  color: var(--gold-light);
+  font-size: 1.15rem;
+  transition: all .2s ease;
+}
+.icon-btn:hover { background: rgba(212, 175, 55, .2); transform: translateY(-2px); }
+
+/* ------------------------------ 主体 ------------------------------ */
+
+.stage-wrap {
+  height: 76vh;
+  display: flex;
+  gap: 1.6rem;
+  padding: 0 2.2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.main-stage {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.side-panel {
+  width: 23rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ------------------------------ 侧栏：二维码 ------------------------------ */
+
+.qr-card {
+  padding: 1.2rem;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(165deg, rgba(255, 248, 240, .1), rgba(255, 248, 240, .04));
+  border: 1px solid rgba(212, 175, 55, .3);
+}
+
+.qr-card h3 {
+  margin: 0 0 .2rem;
+  font-size: 1.15rem;
+  color: var(--gold-light);
+  letter-spacing: .1em;
+}
+.qr-card .tip {
+  font-size: .82rem;
+  color: rgba(255, 248, 240, .55);
+  margin-bottom: .8rem;
+}
+
+#qrcode {
+  width: 11.5rem;
+  height: 11.5rem;
+  margin: 0 auto .7rem;
+  padding: .55rem;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .35);
+}
+#qrcode svg { width: 100%; height: 100%; display: block; }
+
+.qr-url {
+  font-size: .78rem;
+  color: rgba(255, 248, 240, .45);
+  word-break: break-all;
+  line-height: 1.5;
+  margin-bottom: .7rem;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: center;
+  gap: 1.6rem;
+  padding-top: .7rem;
+  border-top: 1px solid rgba(212, 175, 55, .2);
+}
+.stat-item { text-align: center; }
+.stat-item .num {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.stat-item .lbl {
+  font-size: .75rem;
+  color: rgba(255, 248, 240, .5);
+  letter-spacing: .1em;
+}
+
+/* ------------------------------ 侧栏：祝福流 ------------------------------ */
+
+.bless-panel {
+  flex: 1;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, .18);
+  border: 1px solid rgba(212, 175, 55, .2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.bless-panel .hd {
+  padding: .8rem 1.1rem;
+  font-size: .95rem;
+  color: var(--gold-light);
+  letter-spacing: .12em;
+  border-bottom: 1px solid rgba(212, 175, 55, .18);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.bless-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: .8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  min-height: 0;
+}
+.bless-item {
+  display: flex;
+  gap: .7rem;
+  padding: .7rem .8rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, .05);
+  border-left: 3px solid var(--rose);
+  animation: fadeInUp .45s ease both;
+}
+.bless-item .avatar { width: 2.2rem; height: 2.2rem; font-size: 1.1rem; }
+.bless-item .body { min-width: 0; flex: 1; }
+.bless-item .nm {
+  font-size: .82rem;
+  color: var(--gold-light);
+  margin-bottom: .18rem;
+  opacity: .9;
+}
+.bless-item .tx {
+  font-size: .92rem;
+  line-height: 1.55;
+  color: var(--cream);
+  word-break: break-word;
+}
+.bless-empty {
+  text-align: center;
+  color: rgba(255, 248, 240, .35);
+  font-size: .9rem;
+  padding: 2rem 1rem;
+  line-height: 1.8;
+}
+
+/* ------------------------------ 舞台：头像墙 ------------------------------ */
+
+.panel { position: absolute; inset: 0; display: none; }
+.panel.active { display: block; animation: fadeInUp .4s ease both; }
+
+.wall-canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.wall-avatar {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid rgba(243, 221, 161, .75);
+  background: linear-gradient(140deg, var(--rose-soft), var(--rose));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+  animation: popIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
+  transition: left .8s cubic-bezier(.34, 1.2, .64, 1),
+              top .8s cubic-bezier(.34, 1.2, .64, 1);
+}
+.wall-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.wall-avatar .emo { font-size: .75em; line-height: 1; }
+.wall-avatar.newcomer {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 0 .35rem rgba(212, 175, 55, .35), 0 6px 20px rgba(0, 0, 0, .4);
+}
+
+.wall-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: rgba(255, 248, 240, .45);
+  text-align: center;
+}
+.wall-empty .big { font-size: 4rem; opacity: .5; }
+.wall-empty p { margin: 0; font-size: 1.1rem; letter-spacing: .1em; }
+
+/* 网格模式（人数较多时自动切换） */
+.wall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+  gap: .8rem;
+  padding: 1rem;
+  height: 100%;
+  overflow-y: auto;
+  align-content: start;
+}
+.wall-grid .wall-avatar {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  height: 0;
+  transform: none;
+  border-radius: 50%;
+}
+.wall-grid .wall-avatar > * {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+
+/* ------------------------------ 舞台：抽奖 ------------------------------ */
+
+.lottery-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  height: 100%;
+}
+
+.lottery-heading {
+  text-align: center;
+}
+.lottery-heading .prize-name {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  background: linear-gradient(100deg, var(--gold-light), var(--gold), var(--gold-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1.2;
+}
+.lottery-heading .prize-sub {
+  font-size: 1rem;
+  color: rgba(255, 248, 240, .55);
+  letter-spacing: .3em;
+  margin-top: .5rem;
+}
+
+/* 滚动名单 */
+.roll-board {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  min-height: 9rem;
+  padding: 0 1rem;
+  max-width: 100%;
+}
+.roll-slot {
+  width: 8.5rem;
+  height: 8.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(212, 175, 55, .55);
+  background: rgba(255, 255, 255, .06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+.roll-slot.rolling { border-color: var(--gold-light); }
+.roll-slot .avatar { width: 4.2rem; height: 4.2rem; font-size: 2rem; }
+.roll-slot .nm {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--gold-light);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.roll-slot.won {
+  animation: popIn .6s cubic-bezier(.34, 1.56, .64, 1) both;
+  border-color: var(--gold-light);
+  box-shadow: 0 0 0 .4rem rgba(212, 175, 55, .3), 0 8px 30px rgba(212, 175, 55, .4);
+  background: rgba(212, 175, 55, .15);
+}
+
+.lottery-actions { display: flex; gap: 1rem; align-items: center; }
+.lottery-hint {
+  font-size: .9rem;
+  color: rgba(255, 248, 240, .45);
+  letter-spacing: .12em;
+}
+
+/* 中奖名单滚动条 */
+.winners-strip {
+  width: 100%;
+  max-width: 60rem;
+  border-top: 1px solid rgba(212, 175, 55, .2);
+  padding-top: 1rem;
+  display: flex;
+  gap: .6rem;
+  overflow-x: auto;
+  padding-bottom: .4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-height: 8rem;
+}
+.winner-chip {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .35rem .8rem .35rem .35rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, .13);
+  border: 1px solid rgba(212, 175, 55, .3);
+  font-size: .88rem;
+  color: var(--gold-light);
+  animation: popIn .4s ease both;
+  flex-shrink: 0;
+}
+.winner-chip .avatar { width: 1.7rem; height: 1.7rem; font-size: .85rem; }
+
+/* 奖项选择 */
+.prize-tabs {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.prize-tab {
+  padding: .55rem 1.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, .35);
+  background: rgba(255, 255, 255, .05);
+  color: rgba(255, 248, 240, .75);
+  font-size: .95rem;
+  transition: all .2s ease;
+}
+.prize-tab.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #4a3311;
+  font-weight: 700;
+  border-color: transparent;
+}
+.prize-tab .left {
+  font-size: .75rem;
+  opacity: .7;
+  margin-left: .4rem;
+}
+
+/* ------------------------------ 舞台：摇一摇 ------------------------------ */
+
+.game-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1.4rem;
+}
+
+.game-title {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  letter-spacing: .16em;
+  color: var(--gold-light);
+}
+
+.game-countdown {
+  font-size: 8rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(212, 175, 55, .6);
+  animation: popIn .5s ease both;
+}
+
+.game-timer {
+  font-size: 2rem;
+  color: var(--gold-light);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .1em;
+}
+
+.race-track {
+  width: 100%;
+  max-width: 62rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  padding: 0 1rem;
+  max-height: 60%;
+  overflow: hidden;
+}
+.race-row {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  animation: fadeInUp .4s ease both;
+}
+.race-rank {
+  width: 2rem;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--gold-light);
+  flex-shrink: 0;
+}
+.race-rank.top1 { color: #ffd700; font-size: 1.4rem; }
+.race-rank.top2 { color: #e8e8e8; }
+.race-rank.top3 { color: #ffab6b; }
+.race-avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: linear-gradient(140deg, var(--rose-soft), var(--rose));
+  border: 2px solid rgba(243, 221, 161, .6);
+  overflow: hidden;
+}
+.race-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.race-bar-wrap {
+  flex: 1;
+  height: 2.2rem;
+  background: rgba(0, 0, 0, .3);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.race-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--rose), var(--pink) 60%, var(--gold-light));
+  transition: width .25s cubic-bezier(.4, 0, .2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: .8rem;
+  min-width: 3.2rem;
+  box-shadow: 0 0 16px rgba(255, 143, 163, .4);
+}
+.race-name {
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .95rem;
+  color: var(--cream);
+  z-index: 2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 45%;
+}
+.race-score {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #4a1523;
+  font-variant-numeric: tabular-nums;
+  z-index: 2;
+}
+
+.game-empty {
+  text-align: center;
+  color: rgba(255, 248, 240, .4);
+  line-height: 2;
+  font-size: 1.05rem;
+}
+
+/* ------------------------------ 弹幕层 ------------------------------ */
+
+.danmaku-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 500;
+  overflow: hidden;
+}
+.danmaku-item {
+  position: absolute;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem 1.1rem .45rem .5rem;
+  border-radius: 999px;
+  background: rgba(46, 11, 19, .55);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 175, 55, .28);
+  font-size: 1.15rem;
+  color: var(--cream);
+  will-change: transform;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .25);
+}
+.danmaku-item .avatar {
+  width: 1.9rem;
+  height: 1.9rem;
+  font-size: .95rem;
+  border: 1px solid rgba(243, 221, 161, .5);
+}
+.danmaku-item .dn-name { color: var(--gold-light); font-size: .95rem; }
+
+/* ------------------------------ 底部控制台 ------------------------------ */
+
+.console-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12vh;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  z-index: 100;
+  opacity: .18;
+  transition: opacity .35s ease;
+  background: linear-gradient(to top, rgba(20, 4, 8, .85), transparent);
+}
+.console-bar:hover,
+.console-bar.awake { opacity: 1; }
+
+.stage-tab {
+  padding: .7rem 1.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(255, 255, 255, .05);
+  color: rgba(255, 248, 240, .7);
+  font-size: 1rem;
+  transition: all .2s ease;
+  position: relative;
+}
+.stage-tab .kbd {
+  font-size: .7rem;
+  opacity: .5;
+  margin-left: .4rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 .25rem;
+}
+.stage-tab.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #4a3311;
+  font-weight: 700;
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, .35);
+}
+
+/* ------------------------------ 设置弹窗 ------------------------------ */
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 2, 5, .72);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInUp .25s ease both;
+}
+.modal {
+  width: 34rem;
+  max-height: 84vh;
+  overflow-y: auto;
+  background: linear-gradient(165deg, #4a1523, #2a0912);
+  border: 1px solid rgba(212, 175, 55, .35);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem;
+  box-shadow: var(--shadow-card);
+}
+.modal h2 {
+  margin: 0 0 1.4rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--gold-light);
+  letter-spacing: .1em;
+  text-align: center;
+}
+.field { margin-bottom: 1.1rem; }
+.field label {
+  display: block;
+  font-size: .9rem;
+  color: rgba(255, 248, 240, .7);
+  margin-bottom: .45rem;
+  letter-spacing: .06em;
+}
+.field input[type="text"],
+.field input[type="number"],
+.field textarea {
+  width: 100%;
+  padding: .7rem .9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(0, 0, 0, .3);
+  color: var(--cream);
+  font-size: .95rem;
+  outline: none;
+}
+.field input:focus,
+.field textarea:focus { border-color: var(--gold); }
+.field .row { display: flex; gap: .6rem; align-items: center; }
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .7rem 0;
+  border-bottom: 1px solid rgba(212, 175, 55, .15);
+  font-size: .95rem;
+  color: rgba(255, 248, 240, .85);
+}
+.switch {
+  width: 2.8rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .18);
+  position: relative;
+  transition: background .25s ease;
+  flex-shrink: 0;
+}
+.switch.on { background: var(--gold); }
+.switch::after {
+  content: '';
+  position: absolute;
+  top: .18rem;
+  left: .18rem;
+  width: 1.19rem;
+  height: 1.19rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .25s ease;
+}
+.switch.on::after { transform: translateX(1.25rem); }
+
+.modal-actions {
+  display: flex;
+  gap: .8rem;
+  justify-content: flex-end;
+  margin-top: 1.4rem;
+}
+
+.prize-edit-row {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  margin-bottom: .6rem;
+}
+.prize-edit-row input {
+  padding: .55rem .7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(0, 0, 0, .3);
+  color: var(--cream);
+  font-size: .9rem;
+  outline: none;
+}
+.prize-edit-row input:first-child { flex: 1; }
+.prize-edit-row input[type="number"] { width: 5rem; }
+.prize-del {
+  color: #ff9a9e;
+  font-size: 1.2rem;
+  padding: 0 .4rem;
+  line-height: 1;
+}

@@ -1,0 +1,173 @@
+/* common.css —— 设计变量与通用组件 */
+
+:root {
+  /* 婚庆主色：酒红 + 香槟金 */
+  --wine: #6d1f2c;
+  --wine-deep: #2e0b13;
+  --wine-mid: #4a1523;
+  --gold: #d4af37;
+  --gold-light: #f3dda1;
+  --gold-dim: #a8862a;
+  --rose: #e8b4b8;
+  --rose-soft: #f6dde0;
+  --cream: #fff8f0;
+  --pink: #ff8fa3;
+  --ink: #3a2429;
+  --ink-soft: #6b5459;
+  --white: #ffffff;
+
+  --radius-sm: 8px;
+  --radius: 16px;
+  --radius-lg: 24px;
+
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, .18);
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, .25);
+
+  --font-serif: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+               "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+input, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ------------------------------ 工具类 ------------------------------ */
+
+.hidden { display: none !important; }
+.text-gold { color: var(--gold-light); }
+.center { display: flex; align-items: center; justify-content: center; }
+
+/* 按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+  user-select: none;
+}
+.btn:active { transform: scale(.96); }
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold) 60%, var(--gold-dim));
+  color: #4a3311;
+  box-shadow: 0 6px 22px rgba(212, 175, 55, .38);
+}
+.btn-gold:hover { box-shadow: 0 8px 28px rgba(212, 175, 55, .55); }
+
+.btn-ghost {
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(212, 175, 55, .5);
+  color: var(--gold-light);
+}
+.btn-ghost:hover { background: rgba(212, 175, 55, .16); }
+
+.btn-rose {
+  background: linear-gradient(135deg, #ffb3c1, var(--pink));
+  color: #7a2233;
+  box-shadow: 0 6px 20px rgba(255, 143, 163, .4);
+}
+
+.btn-sm { padding: 8px 18px; font-size: 14px; }
+.btn-lg { padding: 16px 44px; font-size: 20px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 头像 */
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--rose-soft), var(--rose));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* 卡片 */
+.card {
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(212, 175, 55, .22);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, .3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, .5); }
+
+/* 动画 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(.6); }
+  60% { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, .5); }
+  50% { box-shadow: 0 0 0 18px rgba(212, 175, 55, 0); }
+}
+
+.anim-in { animation: fadeInUp .5s ease both; }
+.anim-pop { animation: popIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+
+/* Toast */
+.toast-wrap {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgba(46, 11, 19, .92);
+  color: var(--cream);
+  font-size: 15px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(212, 175, 55, .3);
+  animation: fadeInUp .3s ease both;
+}

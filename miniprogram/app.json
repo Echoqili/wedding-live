@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#6d1f2c",
+    "navigationBarTitleText": "婚礼互动",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#fff8f0"
+  },
+  "sitemapLocation": "sitemap.json"
+}

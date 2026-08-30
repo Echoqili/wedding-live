@@ -1,0 +1,10 @@
+# 统一换行符：仓库内一律存 LF，检出时按平台转换
+# 避免 Windows 开发、Linux 部署时产生整片 diff 噪音
+* text=auto eol=lf
+
+# 二进制文件不做任何转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

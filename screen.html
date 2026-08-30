@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>婚礼互动大屏</title>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/screen.css">
+</head>
+<body class="screen">
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div style="width:8rem"></div>
+    <div class="wedding-title">
+      <div class="names"><span id="groomName">新郎</span><span class="heart">♥</span><span id="brideName">新娘</span></div>
+      <div class="sub" id="weddingSub">WEDDING PARTY</div>
+    </div>
+    <div class="topbar-tools">
+      <button class="icon-btn" id="btnDanmaku" title="弹幕开关">💬</button>
+      <button class="icon-btn" id="btnSettings" title="设置">⚙</button>
+      <button class="icon-btn" id="btnFullscreen" title="全屏">⛶</button>
+    </div>
+  </header>
+
+  <!-- 主体 -->
+  <div class="stage-wrap">
+
+    <div class="main-stage">
+
+      <!-- ============ 签到头像墙 ============ -->
+      <section class="panel active" id="panelWall">
+        <div class="wall-canvas" id="wallCanvas">
+          <div class="wall-empty" id="wallEmpty">
+            <div class="big">💒</div>
+            <p>等待宾客扫码签到</p>
+            <p style="font-size:.9rem;opacity:.7">大屏右侧二维码 · 微信扫一扫</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 幸运抽奖 ============ -->
+      <section class="panel" id="panelLottery">
+        <div class="lottery-panel">
+          <div class="prize-tabs" id="prizeTabs"></div>
+
+          <div class="lottery-heading">
+            <div class="prize-name" id="prizeName">三等奖</div>
+            <div class="prize-sub" id="prizeSub">本轮 5 位 · 签到池 0 人</div>
+          </div>
+
+          <div class="roll-board" id="rollBoard"></div>
+
+          <div class="lottery-actions">
+            <button class="btn btn-gold btn-lg" id="btnDraw">开始抽奖</button>
+            <button class="btn btn-ghost" id="btnRedraw">重抽本轮</button>
+            <span class="lottery-hint">快捷键：空格</span>
+          </div>
+
+          <div class="winners-strip" id="winnersStrip"></div>
+        </div>
+      </section>
+
+      <!-- ============ 摇一摇赛马 ============ -->
+      <section class="panel" id="panelGame">
+        <div class="game-panel">
+          <div class="game-title" id="gameTitle">摇一摇 · 默契大比拼</div>
+          <div id="gameCountdown" class="game-countdown hidden"></div>
+          <div id="gameTimer" class="game-timer hidden">30.0</div>
+          <div class="race-track" id="raceTrack"></div>
+          <div class="lottery-actions">
+            <button class="btn btn-gold" id="btnStartGame">开始游戏</button>
+            <button class="btn btn-ghost" id="btnResetGame">重置</button>
+          </div>
+          <div class="game-empty" id="gameEmpty">
+            宾客扫码签到后即可参与<br>30 秒内疯狂摇动手机，大屏实时排名
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 侧栏 -->
+    <aside class="side-panel">
+      <div class="qr-card">
+        <h3>扫码参与互动</h3>
+        <div class="tip">微信 / 相机 扫一扫</div>
+        <div id="qrcode"></div>
+        <div class="qr-url" id="qrUrl"></div>
+        <div class="stat-row">
+          <div class="stat-item">
+            <div class="num" id="statGuests">0</div>
+            <div class="lbl">已签到</div>
+          </div>
+          <div class="stat-item">
+            <div class="num" id="statBlessings">0</div>
+            <div class="lbl">祝福</div>
+          </div>
+          <div class="stat-item">
+            <div class="num" id="statWinners">0</div>
+            <div class="lbl">中奖</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bless-panel">
+        <div class="hd">
+          <span>💌 实时祝福</span>
+          <span style="font-size:.75rem;opacity:.6" id="blessCount">0 条</span>
+        </div>
+        <div class="bless-list" id="blessList">
+          <div class="bless-empty">还没有人送祝福<br>扫码后即可写下你的祝福</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 弹幕层 -->
+  <div class="danmaku-layer" id="danmakuLayer"></div>
+
+  <!-- 底部控制台 -->
+  <div class="console-bar" id="consoleBar">
+    <button class="stage-tab active" data-stage="wall">签到墙<span class="kbd">1</span></button>
+    <button class="stage-tab" data-stage="lottery">幸运抽奖<span class="kbd">2</span></button>
+    <button class="stage-tab" data-stage="game">摇一摇<span class="kbd">3</span></button>
+  </div>
+
+  <!-- 设置弹窗 -->
+  <div class="modal-mask hidden" id="settingsModal">
+    <div class="modal">
+      <h2>⚙ 现场设置</h2>
+
+      <div class="field">
+        <label>新郎姓名</label>
+        <input type="text" id="cfgGroom" placeholder="新郎">
+      </div>
+      <div class="field">
+        <label>新娘姓名</label>
+        <input type="text" id="cfgBride" placeholder="新娘">
+      </div>
+      <div class="field">
+        <label>副标题（日期 / 地点）</label>
+        <input type="text" id="cfgSub" placeholder="如：2026.10.01 · 上海浦东香格里拉">
+      </div>
+
+      <div class="switch-row">
+        <span>祝福需审核后才上墙</span>
+        <div class="switch" id="swReview"></div>
+      </div>
+      <div class="switch-row">
+        <span>开启祝福弹幕飘屏</span>
+        <div class="switch on" id="swDanmaku"></div>
+      </div>
+
+      <div class="field" style="margin-top:1.2rem">
+        <label>奖项设置</label>
+        <div id="prizeEditor"></div>
+        <button class="btn btn-ghost btn-sm" id="btnAddPrize" style="margin-top:.5rem">+ 添加奖项</button>
+      </div>
+
+      <div class="field" style="margin-top:1.2rem">
+        <label>危险操作</label>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" id="btnClearWinners">清空中奖记录</button>
+          <button class="btn btn-ghost btn-sm" id="btnClearBlessings">清空祝福</button>
+          <button class="btn btn-ghost btn-sm" id="btnResetAll">重置全部数据</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btnCloseSettings">取消</button>
+        <button class="btn btn-gold" id="btnSaveSettings">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script src="js/qrcode.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/remote-store.js"></script>
+  <script src="js/screen.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "wedding-live",
+  "version": "1.0.0",
+  "description": "婚庆现场互动系统 - 大屏 + 手机 H5 + 可选 WebSocket 同步",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "python -m http.server 8080"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

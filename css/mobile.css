@@ -1,0 +1,396 @@
+/* mobile.css —— 手机端（奶油白 + 玫瑰粉，温暖明亮） */
+
+body.mobile {
+  background:
+    radial-gradient(ellipse at 50% 0%, #fff2f4 0%, transparent 55%),
+    linear-gradient(180deg, #fffaf5 0%, #fdf3f0 100%);
+  color: var(--ink);
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ------------------------------ 头部 ------------------------------ */
+
+.m-header {
+  padding: 2.2rem 1.2rem 1.4rem;
+  text-align: center;
+  position: relative;
+}
+.m-header::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin: 1rem auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.m-header .m-names {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--wine);
+}
+.m-header .m-names .heart { color: var(--pink); margin: 0 .4rem; }
+.m-header .m-sub {
+  margin-top: .5rem;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  letter-spacing: .18em;
+}
+
+/* ------------------------------ 容器 ------------------------------ */
+
+.m-wrap {
+  padding: 0 1.1rem 2rem;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.m-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1.2rem;
+  box-shadow: 0 6px 24px rgba(150, 90, 100, .1);
+  margin-bottom: 1rem;
+  border: 1px solid rgba(232, 180, 184, .28);
+}
+
+.m-card h3 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  color: var(--wine);
+  letter-spacing: .06em;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.m-card h3 .step {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #4a3311;
+  font-size: .78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ------------------------------ 表单 ------------------------------ */
+
+.m-label {
+  display: block;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  margin-bottom: .5rem;
+  letter-spacing: .04em;
+}
+
+.m-input {
+  width: 100%;
+  padding: .85rem 1rem;
+  border-radius: var(--radius);
+  border: 1.5px solid #f0dcdc;
+  background: #fffafa;
+  font-size: 1rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .2s ease;
+}
+.m-input:focus { border-color: var(--rose); background: #fff; }
+.m-input::placeholder { color: #c9b0b3; }
+
+.m-textarea {
+  width: 100%;
+  min-height: 6.5rem;
+  padding: .85rem 1rem;
+  border-radius: var(--radius);
+  border: 1.5px solid #f0dcdc;
+  background: #fffafa;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+  transition: border-color .2s ease;
+}
+.m-textarea:focus { border-color: var(--rose); background: #fff; }
+
+.counter {
+  text-align: right;
+  font-size: .78rem;
+  color: #bd9ea1;
+  margin-top: .4rem;
+}
+
+/* ------------------------------ 头像选择 ------------------------------ */
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: .5rem;
+  margin-bottom: .8rem;
+}
+.avatar-opt {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: linear-gradient(140deg, #fff0f2, #fde3e6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  transition: all .2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-opt.sel {
+  border-color: var(--gold);
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, .4);
+}
+.avatar-opt img { width: 100%; height: 100%; object-fit: cover; }
+
+.avatar-actions {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+}
+.upload-btn {
+  flex: 1;
+  padding: .7rem;
+  border-radius: var(--radius);
+  border: 1.5px dashed #e3c4c7;
+  background: #fffafa;
+  color: var(--ink-soft);
+  font-size: .88rem;
+  text-align: center;
+  transition: all .2s ease;
+}
+.upload-btn:active { background: #fff0f2; }
+
+/* ------------------------------ 快捷祝福 ------------------------------ */
+
+.quick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: .8rem;
+}
+.quick-item {
+  padding: .42rem .8rem;
+  border-radius: 999px;
+  background: #fff0f2;
+  border: 1px solid #f7dfe2;
+  color: #a2596a;
+  font-size: .82rem;
+  transition: all .18s ease;
+}
+.quick-item:active { background: var(--rose); color: #fff; }
+.quick-item.sel { background: var(--rose); color: #fff; border-color: var(--rose); }
+
+/* ------------------------------ 按钮 ------------------------------ */
+
+.m-btn {
+  width: 100%;
+  padding: .95rem;
+  border-radius: var(--radius);
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.m-btn:active { transform: scale(.98); }
+
+.m-btn-primary {
+  background: linear-gradient(135deg, #ffb3c1, var(--pink));
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(255, 143, 163, .38);
+}
+.m-btn-gold {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #4a3311;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, .35);
+}
+.m-btn-ghost {
+  background: #fff;
+  border: 1.5px solid #f0dcdc;
+  color: var(--ink-soft);
+}
+.m-btn:disabled { opacity: .45; box-shadow: none; }
+
+/* ------------------------------ Tab ------------------------------ */
+
+.m-tabs {
+  display: flex;
+  gap: .4rem;
+  background: #fff;
+  padding: .35rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(150, 90, 100, .1);
+  margin-bottom: 1rem;
+  border: 1px solid rgba(232, 180, 184, .25);
+}
+.m-tab {
+  flex: 1;
+  padding: .6rem .3rem;
+  border-radius: 999px;
+  font-size: .9rem;
+  color: var(--ink-soft);
+  text-align: center;
+  transition: all .22s ease;
+}
+.m-tab.active {
+  background: linear-gradient(135deg, var(--wine), #8a2c3c);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(109, 31, 44, .3);
+}
+
+.m-panel { display: none; }
+.m-panel.active { display: block; animation: fadeInUp .35s ease both; }
+
+/* ------------------------------ 摇一摇 ------------------------------ */
+
+.shake-zone {
+  text-align: center;
+  padding: 1.2rem 0;
+}
+.shake-circle {
+  width: 11rem;
+  height: 11rem;
+  margin: 0 auto 1.2rem;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #fff0f2, #ffd9df);
+  border: 3px solid var(--rose);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  box-shadow: 0 8px 30px rgba(255, 143, 163, .3);
+  transition: transform .1s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.shake-circle:active { transform: scale(.94); }
+.shake-circle .big-num {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--pink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.shake-circle .unit { font-size: .82rem; color: var(--ink-soft); letter-spacing: .1em; }
+
+.shake-status {
+  font-size: .95rem;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+  min-height: 1.4rem;
+  line-height: 1.6;
+}
+.shake-status.hot { color: var(--pink); font-weight: 600; }
+
+.m-tip {
+  font-size: .8rem;
+  color: #b39a9d;
+  line-height: 1.7;
+  text-align: center;
+  padding: .3rem .5rem;
+}
+
+/* ------------------------------ 我的名片 ------------------------------ */
+
+.me-card {
+  text-align: center;
+  padding: 1.6rem 1rem;
+}
+.me-avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0 auto .8rem;
+  border-radius: 50%;
+  border: 3px solid var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: linear-gradient(140deg, #fff0f2, #fde3e6);
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, .25);
+}
+.me-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.me-name {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--wine);
+  letter-spacing: .06em;
+}
+.me-tag {
+  display: inline-block;
+  margin-top: .5rem;
+  padding: .25rem .8rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #4a3311;
+  font-size: .75rem;
+  letter-spacing: .08em;
+}
+
+.win-banner {
+  margin-top: 1rem;
+  padding: .9rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #fff4d6, #ffe9b0);
+  border: 1px solid var(--gold-light);
+  color: #8a6a1a;
+  font-size: .95rem;
+  animation: popIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.win-banner .prize { font-weight: 700; color: var(--wine); font-size: 1.05rem; }
+
+/* ------------------------------ 祝福记录 ------------------------------ */
+
+.my-bless-item {
+  padding: .8rem;
+  border-radius: var(--radius-sm);
+  background: #fffafa;
+  border-left: 3px solid var(--rose);
+  margin-bottom: .6rem;
+  font-size: .92rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.my-bless-item .t {
+  font-size: .74rem;
+  color: #b39a9d;
+  margin-top: .35rem;
+}
+
+/* ------------------------------ 底部 ------------------------------ */
+
+.m-footer {
+  text-align: center;
+  padding: 1.5rem 1rem 2.5rem;
+  font-size: .75rem;
+  color: #c4aeb1;
+  line-height: 1.8;
+}
+
+/* 游戏进行中：整个卡片高亮，引导注意力但不遮挡点击区域 */
+.shake-zone.live .shake-circle {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 .5rem rgba(255, 143, 163, .18), 0 10px 34px rgba(255, 143, 163, .45);
+  animation: pulseGold 1.4s ease-in-out infinite;
+}
+.shake-status {
+  font-size: 1rem;
+}
+.shake-status.countdown {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--pink);
+}

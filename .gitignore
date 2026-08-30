@@ -1,0 +1,18 @@
+# 依赖
+node_modules/
+
+# 测试产物
+tools/verify/shots/
+tools/verify/js_matrices.json
+
+# 日志
+*.log
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 小程序本地编译缓存（如有）
+miniprogram/miniprogram_npm/

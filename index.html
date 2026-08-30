@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>婚礼现场互动 · 入口</title>
+<link rel="stylesheet" href="css/common.css">
+<style>
+  body {
+    background:
+      radial-gradient(ellipse at 30% 10%, rgba(212,175,55,.16), transparent 55%),
+      radial-gradient(ellipse at 75% 85%, rgba(255,143,163,.14), transparent 55%),
+      linear-gradient(160deg, #2e0b13 0%, #6d1f2c 50%, #1a0509 100%);
+    color: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.2rem;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    margin: 0 0 .6rem;
+    letter-spacing: .14em;
+    background: linear-gradient(100deg, var(--gold-light), var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p { margin: 0 0 2.4rem; color: rgba(255,248,240,.6); letter-spacing: .1em; font-size: .95rem; }
+
+  .entries { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: center; max-width: 46rem; }
+  .entry {
+    flex: 1 1 17rem;
+    padding: 2rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(212,175,55,.3);
+    text-decoration: none;
+    color: var(--cream);
+    transition: transform .2s ease, box-shadow .25s ease, background .2s ease;
+  }
+  .entry:hover {
+    transform: translateY(-4px);
+    background: rgba(212,175,55,.12);
+    box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  }
+  .entry .ico { font-size: 2.6rem; margin-bottom: .8rem; }
+  .entry h2 { margin: 0 0 .5rem; font-size: 1.25rem; color: var(--gold-light); letter-spacing: .08em; }
+  .entry p { margin: 0; font-size: .88rem; color: rgba(255,248,240,.6); line-height: 1.7; }
+
+  .addr-box {
+    margin-top: 2.6rem;
+    padding: 1rem 1.4rem;
+    border-radius: var(--radius);
+    background: rgba(0,0,0,.25);
+    border: 1px dashed rgba(212,175,55,.35);
+    font-size: .88rem;
+    color: rgba(255,248,240,.75);
+    line-height: 1.9;
+    max-width: 34rem;
+  }
+  .addr-box code {
+    color: var(--gold-light);
+    font-family: ui-monospace, Consolas, monospace;
+    word-break: break-all;
+  }
+  .warn { color: #ffd28a; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <h1>婚礼现场互动</h1>
+    <p>签到墙 · 祝福弹幕 · 幸运抽奖 · 摇一摇</p>
+  </div>
+
+  <div class="entries">
+    <a class="entry" href="screen.html">
+      <div class="ico">🖥️</div>
+      <h2>大屏端</h2>
+      <p>投屏到婚礼大屏幕<br>主持人操作台（快捷键 1/2/3 切换，空格抽奖）</p>
+    </a>
+    <a class="entry" href="mobile.html">
+      <div class="ico">📱</div>
+      <h2>宾客端</h2>
+      <p>扫码后签到、送祝福、摇一摇<br>手机浏览器直接打开即可</p>
+    </a>
+  </div>
+
+  <div class="addr-box">
+    <div>当前访问地址：<code id="curHost">—</code></div>
+    <div id="protoTip"></div>
+    <div style="margin-top:.6rem;font-size:.82rem;opacity:.75">
+      宾客需与婚礼大屏处于同一 Wi-Fi，用手机访问上面的地址进入「宾客端」
+    </div>
+  </div>
+
+<script>
+  (function () {
+    var host = location.host || '（本地文件）';
+    document.getElementById('curHost').textContent = location.origin + '/';
+
+    var tip = document.getElementById('protoTip');
+    if (location.protocol === 'file:') {
+      tip.innerHTML = '<span class="warn">⚠ 当前以 file:// 打开，跨设备同步不可用。' +
+        '请在项目目录执行 <code>npx serve</code> 或 <code>python -m http.server 8080</code>，' +
+        '再用局域网地址访问。</span>';
+    } else if (/^https?:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)) {
+      tip.innerHTML = '<span class="warn">⚠ 当前是本机地址，手机扫码无法访问。' +
+        '请改用电脑的局域网 IP（如 <code>http://192.168.x.x:8080</code>）。</span>';
+    } else {
+      tip.innerHTML = '✅ 局域网地址，手机可直接扫码访问';
+    }
+  })();
+</script>
+</body>
+</html>

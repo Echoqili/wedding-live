@@ -1,0 +1,7 @@
+<!--pages/index/index.wxml-->
+<!--
+  加载 H5 移动端页面。
+  注意：必须在微信小程序后台「开发 → 开发管理 → 开发设置 → 业务域名」里
+  把 h5Base 的域名加进去，并且该域名需要 ICP 备案 + HTTPS 证书。
+-->
+<web-view src="{{h5Url}}" bindmessage="onMessage"></web-view>
