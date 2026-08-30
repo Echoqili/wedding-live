@@ -883,6 +883,7 @@
     $('cfgSub').value = s.config.date || '';
     $('swReview').classList.toggle('on', !!s.config.needReview);
     $('swDanmaku').classList.toggle('on', !(s.config && s.config.danmaku === false));
+    $('cfgPasscode').value = s.config.passcode || '';
 
     // 视觉与音乐：编辑期用 pending 副本，保存时才写入共享 state
     var p = s.config.photos || {};
@@ -980,6 +981,7 @@
         date: ($('cfgSub').value || '').trim(),
         needReview: $('swReview').classList.contains('on'),
         danmaku: $('swDanmaku').classList.contains('on'),
+        passcode: ($('cfgPasscode').value || '').replace(/[^\d]/g, '').slice(0, 4),
         photos: pendingPhotos,
         music: pendingMusic,
         prizes: prizes
@@ -993,27 +995,30 @@
     });
 
     $('btnClearWinners').addEventListener('click', function () {
-      if (confirm('确定清空所有中奖记录？已中奖的宾客将可被重新抽取。')) {
+      if (!confirm('确定清空所有中奖记录？已中奖的宾客将可被重新抽取。')) return;
+      guardPasscode(function () {
         A.clearWinners(store, null);
         UI.toast('中奖记录已清空');
-      }
+      });
     });
 
     $('btnClearBlessings').addEventListener('click', function () {
-      if (confirm('确定清空所有祝福？此操作不可恢复。')) {
+      if (!confirm('确定清空所有祝福？此操作不可恢复。')) return;
+      guardPasscode(function () {
         store.update(function (s) { s.blessings = []; });
         lastBlessingCount = 0;
         UI.toast('祝福已清空');
-      }
+      });
     });
 
     $('btnResetAll').addEventListener('click', function () {
-      if (confirm('确定重置全部数据？签到、祝福、中奖记录都会被清空。')) {
+      if (!confirm('确定重置全部数据？签到、祝福、中奖记录都会被清空。')) return;
+      guardPasscode(function () {
         store.reset();
         lastBlessingCount = 0;
         closeSettings();
         UI.toast('已重置');
-      }
+      });
     });
 
     // 祝福审核
@@ -1037,6 +1042,16 @@
   }
 
   /* ==================== 视觉与音乐上传（M2-1 / M2-2） ==================== */
+
+  /** 现场口令守卫（P1-4）：启用口令后，危险操作需验证 */
+  function guardPasscode(cb) {
+    var code = (store.getState().config || {}).passcode;
+    if (code) {
+      UI.askPasscode(code, function (ok) { if (ok) cb(); }, '危险操作需口令');
+    } else {
+      cb();
+    }
+  }
 
   function bindVisualUploads() {
     var photoKeys = { fileBg: 'bg', fileCouple: 'couple', fileLogo: 'logo' };

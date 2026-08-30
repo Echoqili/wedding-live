@@ -208,6 +208,15 @@
         <div class="switch on" id="swDanmaku"></div>
       </div>
 
+      <div class="field" style="margin-top:1rem">
+        <label>🔒 现场口令（可选，4 位数字）</label>
+        <input type="text" id="cfgPasscode" maxlength="4" inputmode="numeric"
+               placeholder="留空则不启用；启用后主持控台与危险操作需验证">
+        <div class="m-tip" style="font-size:.75rem;color:rgba(255,248,240,.5);margin-top:.35rem">
+          防止现场有人用手机重置数据。主持人用控台时输入一次即可
+        </div>
+      </div>
+
       <div class="field" style="margin-top:1.2rem">
         <label>奖项设置</label>
         <div id="prizeEditor"></div>

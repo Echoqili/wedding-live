@@ -106,11 +106,36 @@
     }).join('');
   }
 
+  /**
+   * 现场口令鉴权（P1-4）。
+   * - 未启用口令（passcode 为空）→ 直接放行
+   * - 启用后：首次操作弹口令框，验证结果按口令值存 sessionStorage（改口令后需重新验证）
+   */
+  var AUTH_KEY = 'wedding_host_auth';
+
+  function isAuthed() {
+    var code = (store.getState().config || {}).passcode;
+    if (!code) return true; // 未启用
+    try { return sessionStorage.getItem(AUTH_KEY) === code; } catch (e) { return false; }
+  }
+
+  function withAuth(cb) {
+    if (isAuthed()) { cb(); return; }
+    var code = (store.getState().config || {}).passcode;
+    UI.askPasscode(code, function (ok) {
+      if (!ok) { UI.toast('口令错误，操作未执行'); return; }
+      try { sessionStorage.setItem(AUTH_KEY, code); } catch (e) { /* 忽略 */ }
+      cb();
+    }, '主持控台口令');
+  }
+
   function bind() {
     // 舞台切换
     document.querySelectorAll('.h-btn[data-stage]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        A.setStage(store, btn.getAttribute('data-stage'));
+        withAuth(function () {
+          A.setStage(store, btn.getAttribute('data-stage'));
+        });
       });
     });
 
@@ -118,13 +143,17 @@
     $('prizeBtns').addEventListener('click', function (e) {
       var btn = e.target.closest('[data-prize]');
       if (!btn) return;
-      A.setLotteryPrize(store, btn.getAttribute('data-prize'));
+      withAuth(function () {
+        A.setLotteryPrize(store, btn.getAttribute('data-prize'));
+      });
     });
 
     // 开始/停止滚动
     $('btnDrawToggle').addEventListener('click', function () {
-      var s = store.getState();
-      A.setLotteryRolling(store, !(s.lottery && s.lottery.rolling));
+      withAuth(function () {
+        var s = store.getState();
+        A.setLotteryRolling(store, !(s.lottery && s.lottery.rolling));
+      });
     });
 
     // 重抽本轮
@@ -133,27 +162,35 @@
       var prizeId = (s.lottery && s.lottery.prizeId) ||
         ((s.config.prizes[0] || {}).id || null);
       if (!prizeId) { UI.toast('尚未配置奖项'); return; }
-      A.setLotteryRolling(store, false);
-      A.clearWinners(store, prizeId);
-      UI.toast('已清空该奖项中奖记录');
+      withAuth(function () {
+        A.setLotteryRolling(store, false);
+        A.clearWinners(store, prizeId);
+        UI.toast('已清空该奖项中奖记录');
+      });
     });
 
     // 游戏
     $('btnGameStart').addEventListener('click', function () {
-      A.startGame(store, 30);
-      UI.toast('游戏已开始，大屏进入倒计时');
+      withAuth(function () {
+        A.startGame(store, 30);
+        UI.toast('游戏已开始，大屏进入倒计时');
+      });
     });
     $('btnGameReset').addEventListener('click', function () {
-      A.resetGame(store);
-      UI.toast('已重置游戏');
+      withAuth(function () {
+        A.resetGame(store);
+        UI.toast('已重置游戏');
+      });
     });
 
     // 弹幕
     $('btnDanmaku').addEventListener('click', function () {
-      var s = store.getState();
-      var next = !(s.config && s.config.danmaku !== false);
-      A.updateConfig(store, { danmaku: next });
-      UI.toast(next ? '弹幕已开启' : '弹幕已关闭');
+      withAuth(function () {
+        var s = store.getState();
+        var next = !(s.config && s.config.danmaku !== false);
+        A.updateConfig(store, { danmaku: next });
+        UI.toast(next ? '弹幕已开启' : '弹幕已关闭');
+      });
     });
   }
 

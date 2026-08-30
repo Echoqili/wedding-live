@@ -42,6 +42,8 @@
         needReview: false,
         // 祝福弹幕飘屏开关（共享，主持控台可切换）
         danmaku: true,
+        // 现场口令（4 位数字，留空=不启用鉴权；启用后主持控台与危险操作需验证）
+        passcode: '',
         // 视觉与音乐定制（M2）：均为 URL 或 base64
         photos: { bg: '', couple: '', logo: '' },
         music: '',

@@ -187,6 +187,78 @@
     return p(d.getHours()) + ':' + p(d.getMinutes());
   }
 
+  /**
+   * 现场口令验证弹层（P1-4）。
+   * 全内联样式，不依赖各端 CSS，大屏 / 控台 / 手机都能用。
+   * @param {string} correct 正确口令（4 位数字）
+   * @param {function(boolean)} cb 结果回调
+   * @param {string} [title]
+   */
+  function askPasscode(correct, cb, title) {
+    var mask = document.createElement('div');
+    mask.style.cssText =
+      'position:fixed;inset:0;background:rgba(10,2,5,.75);display:flex;' +
+      'align-items:center;justify-content:center;z-index:9999;';
+
+    var box = document.createElement('div');
+    box.style.cssText =
+      'width:20rem;max-width:86vw;background:#3a1520;border:1px solid rgba(212,175,55,.45);' +
+      'border-radius:16px;padding:1.6rem;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.5);';
+
+    var input = document.createElement('input');
+    input.type = 'password';
+    input.maxLength = 4;
+    input.placeholder = '4 位数字口令';
+    input.style.cssText =
+      'width:100%;padding:.85rem;border-radius:8px;border:1.5px solid rgba(212,175,55,.45);' +
+      'background:rgba(0,0,0,.35);color:#fff;font-size:1.3rem;text-align:center;outline:none;' +
+      'letter-spacing:.4em;box-sizing:border-box;';
+
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:.7rem;margin-top:1.1rem;justify-content:center;';
+
+    var cancel = document.createElement('button');
+    cancel.textContent = '取消';
+    cancel.className = 'btn btn-ghost';
+    var ok = document.createElement('button');
+    ok.textContent = '确定';
+    ok.className = 'btn btn-gold';
+    ok.style.cssText = 'min-width:6rem';
+
+    box.innerHTML = '<div style="font-size:1.6rem;margin-bottom:.4rem">🔒</div>' +
+      '<div style="color:#f3dda1;font-size:1.05rem;margin-bottom:1rem;font-weight:600">' +
+      (title || '请输入现场口令') + '</div>';
+    box.appendChild(input);
+    btns.appendChild(cancel);
+    btns.appendChild(ok);
+    box.appendChild(btns);
+    mask.appendChild(box);
+    document.body.appendChild(mask);
+
+    function close() {
+      mask.remove();
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') { close(); cb(false); }
+      if (e.key === 'Enter') ok.click();
+    }
+    ok.onclick = function () {
+      if ((input.value || '').trim() === String(correct)) {
+        close();
+        cb(true);
+      } else {
+        input.style.borderColor = '#e06666';
+        input.value = '';
+        input.focus();
+        toast('口令错误，请重试');
+      }
+    };
+    cancel.onclick = function () { close(); cb(false); };
+    document.addEventListener('keydown', onKey);
+    setTimeout(function () { input.focus(); }, 60);
+  }
+
   global.UI = {
     PRESET_AVATARS: PRESET_AVATARS,
     avatarHTML: avatarHTML,
@@ -195,6 +267,7 @@
     layoutHeart: layoutHeart,
     compressImage: compressImage,
     toast: toast,
+    askPasscode: askPasscode,
     escapeHtml: escapeHtml,
     filterText: filterText,
     formatTime: formatTime
