@@ -72,6 +72,17 @@
         rolling: false,         // true=滚动中，大屏据此启动/停止滚动动画
         prizeId: null           // 当前选中的奖项 id
       },
+      // 现场投票（M3-1）
+      vote: {
+        active: false,          // true=投票进行中
+        question: '',
+        options: [],            // [{id, text}]
+        counts: {},             // {optId: 票数}
+        votedBy: {},            // {guestId: optId}，支持改投
+        resultShown: false      // 结束后大屏是否在展示结果
+      },
+      // 恋爱大事记（M3-2），轮播用
+      timeline: [],             // [{id, year, title, desc}]
       // 大屏当前展示的模块，手机端可跟随
       stage: 'wall',            // wall | lottery | game
       updatedAt: 0
@@ -84,12 +95,12 @@
   function mergeState(base, incoming) {
     if (!incoming || typeof incoming !== 'object') return base;
     var out = clone(base);
-    ['config', 'game', 'lottery'].forEach(function (k) {
+    ['config', 'game', 'lottery', 'vote'].forEach(function (k) {
       if (incoming[k] && typeof incoming[k] === 'object') {
         out[k] = Object.assign({}, out[k], incoming[k]);
       }
     });
-    ['guests', 'blessings', 'winners'].forEach(function (k) {
+    ['guests', 'blessings', 'winners', 'timeline'].forEach(function (k) {
       if (Array.isArray(incoming[k])) out[k] = incoming[k];
     });
     if (typeof incoming.stage === 'string') out.stage = incoming.stage;
@@ -392,6 +403,62 @@
       store.update(function (s) {
         if (!s.lottery) s.lottery = { rolling: false, prizeId: null };
         s.lottery.prizeId = prizeId;
+      });
+    },
+
+    /** 发起投票（M3-1）：payload = {question, options: [{id,text}]} */
+    startVote: function (store, payload) {
+      store.update(function (s) {
+        if (!s.vote) s.vote = { active: false, question: '', options: [], counts: {}, votedBy: {}, resultShown: false };
+        s.vote.active = true;
+        s.vote.question = payload.question || '现场投票';
+        s.vote.options = payload.options && payload.options.length
+          ? payload.options : [{ id: 'o1', text: '是' }, { id: 'o2', text: '否' }];
+        var counts = {};
+        s.vote.options.forEach(function (o) { counts[o.id] = 0; });
+        s.vote.counts = counts;
+        s.vote.votedBy = {};
+        s.vote.resultShown = false;
+      });
+    },
+
+    /** 投票 / 改投（M3-1）：guestId 投 optionId，可反复改投直到结束 */
+    castVote: function (store, guestId, optionId) {
+      store.update(function (s) {
+        if (!s.vote || !s.vote.active) return;
+        var v = s.vote;
+        // 改投：撤销旧票
+        if (v.votedBy[guestId] && v.votedBy[guestId] !== optionId) {
+          var old = v.votedBy[guestId];
+          if (v.counts[old] != null) v.counts[old] = Math.max(0, v.counts[old] - 1);
+        }
+        if (v.votedBy[guestId] === optionId) return; // 同选项再点 = 不变
+        v.votedBy[guestId] = optionId;
+        if (v.counts[optionId] == null) v.counts[optionId] = 0;
+        v.counts[optionId]++;
+      });
+    },
+
+    /** 结束投票（M3-1）：active=false，保留结果供大屏展示 */
+    endVote: function (store) {
+      store.update(function (s) {
+        if (!s.vote) return;
+        s.vote.active = false;
+        s.vote.resultShown = true;
+      });
+    },
+
+    /** 保存恋爱大事记（M3-2）：items = [{year, title, desc}] */
+    setTimeline: function (store, items) {
+      store.update(function (s) {
+        s.timeline = items.map(function (it, i) {
+          return {
+            id: (it.id) || 't' + Date.now() + '_' + i,
+            year: String(it.year || '').trim(),
+            title: String(it.title || '').trim(),
+            desc: String(it.desc || '').trim()
+          };
+        });
       });
     },
 

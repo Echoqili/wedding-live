@@ -85,6 +85,8 @@
     bindConsole();
     bindLottery();
     bindGame();
+    bindVote();
+    bindEffects();
     bindSettings();
     bindKeys();
     renderQR();
@@ -150,6 +152,8 @@
     renderPrizeTabs(s);
     renderWinners(s);
     renderGame(s);
+    renderVote(s);
+    renderStory(s);
   }
 
   /**
@@ -159,7 +163,7 @@
    */
   function syncStageControl(s) {
     if (s.stage && s.stage !== currentStage &&
-        ['wall', 'lottery', 'game'].indexOf(s.stage) >= 0) {
+        ['wall', 'lottery', 'game', 'vote', 'story'].indexOf(s.stage) >= 0) {
       switchStage(s.stage);
     }
   }
@@ -800,11 +804,198 @@
     });
   }
 
+  /* ==================== 现场投票（M3-1） ==================== */
+
+  var voteKey = '';
+
+  function renderVote(s) {
+    var v = s.vote || {};
+    var empty = $('voteEmpty');
+    var body = $('voteBody');
+
+    if (!v.options || !v.options.length) {
+      empty.classList.remove('hidden');
+      body.classList.add('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    body.classList.remove('hidden');
+
+    // 脏检查：question/options/counts/active/参与人数 任一变化才重绘
+    var total = 0;
+    var key = (v.active ? 'A' : 'E') + '|' + v.question + '|' +
+      v.options.map(function (o) { return o.id + ':' + o.text + ':' + (v.counts[o.id] || 0); }).join(',') +
+      '|' + Object.keys(v.votedBy).length;
+    if (key === voteKey) return;
+    voteKey = key;
+
+    v.options.forEach(function (o) { total += v.counts[o.id] || 0; });
+
+    $('voteBadge').textContent = v.active ? '🗳 投票进行中' : '🏁 投票已结束';
+    $('voteBadge').classList.toggle('ended', !v.active);
+    $('voteQuestion').textContent = v.question || '现场投票';
+    $('voteCount').textContent = total + ' 人已投';
+
+    // 排名：票数降序（同票保持原序）
+    var order = v.options.slice().sort(function (a, b) {
+      return (v.counts[b.id] || 0) - (v.counts[a.id] || 0);
+    });
+    var max = Math.max(1, order[0] ? (v.counts[order[0].id] || 0) : 1);
+
+    $('voteOptions').innerHTML = order.map(function (o) {
+      var n = v.counts[o.id] || 0;
+      var pct = Math.round((n / max) * 100);
+      var pctOfTotal = total ? Math.round((n / total) * 100) : 0;
+      return '<div class="vote-option">' +
+        '<div class="bar" style="width:' + pct + '%"></div>' +
+        '<div class="row"><span class="txt">' + UI.escapeHtml(o.text) + '</span>' +
+        '<span class="cnt">' + n + ' 票</span>' +
+        '<span class="pct">' + pctOfTotal + '%</span></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function bindVote() {
+    $('btnEndVote').addEventListener('click', function () {
+      A.endVote(store);
+      UI.toast('投票已结束');
+    });
+  }
+
+  /* ==================== 恋爱大事记（M3-2） ==================== */
+
+  var storyIndex = 0;
+  var storyTimer = null;
+  var storyKey = '';
+
+  function renderStory(s) {
+    var items = s.timeline || [];
+    var empty = $('storyEmpty');
+    var body = $('storyBody');
+
+    if (!items.length) {
+      empty.classList.remove('hidden');
+      body.classList.add('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    body.classList.remove('hidden');
+
+    var key = items.map(function (t) { return t.id; }).join('|');
+    if (key !== storyKey) {
+      storyKey = key;
+      storyIndex = 0; // 内容变化回到第一条
+    }
+    if (storyIndex >= items.length) storyIndex = 0;
+
+    var it = items[storyIndex];
+    $('storyYear').textContent = it.year || '——';
+    $('storyTitle').textContent = it.title || '';
+    $('storyDesc').textContent = it.desc || '';
+
+    // 圆点指示器
+    $('storyDots').innerHTML = items.map(function (_, i) {
+      return '<span class="dot' + (i === storyIndex ? ' on' : '') + '"></span>';
+    }).join('');
+
+    // 自动轮播：仅在故事舞台可见时推进
+    if (currentStage === 'story') {
+      if (!storyTimer) {
+        storyTimer = setInterval(function () {
+          var s2 = store.getState();
+          if (!(s2.timeline || []).length) return;
+          if (currentStage !== 'story') return;
+          storyIndex = (storyIndex + 1) % s2.timeline.length;
+          var it2 = s2.timeline[storyIndex];
+          $('storyYear').textContent = it2.year || '——';
+          $('storyTitle').textContent = it2.title || '';
+          $('storyDesc').textContent = it2.desc || '';
+          var dots = $('storyDots').children;
+          for (var i = 0; i < dots.length; i++) {
+            dots[i].classList.toggle('on', i === storyIndex);
+          }
+        }, 7000);
+      }
+    } else if (storyTimer) {
+      clearInterval(storyTimer);
+      storyTimer = null;
+    }
+  }
+
+  /* ==================== 氛围特效（M3-3） ==================== */
+
+  function bindEffects() {
+    $('btnHeartRain').addEventListener('click', function () {
+      startEffect('💗💖💕💘', 90);
+    });
+    $('btnRedPacket').addEventListener('click', function () {
+      startEffect('🧧💰🎉', 120);
+    });
+  }
+
+  /** canvas 粒子下落特效，8 秒后自动移除 */
+  function startEffect(emojis, count) {
+    // 防重复：正在播放则先移除
+    var old = document.querySelector('.effect-canvas');
+    if (old) old.remove();
+
+    var canvas = document.createElement('canvas');
+    canvas.className = 'effect-canvas';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+
+    var chars = emojis.split('');
+    var parts = [];
+    for (var i = 0; i < count; i++) {
+      parts.push({
+        x: Math.random() * canvas.width,
+        y: -60 - Math.random() * canvas.height * 0.5,
+        v: 1.6 + Math.random() * 2.8,
+        s: 22 + Math.random() * 30,
+        a: Math.random() * Math.PI * 2,
+        rot: (Math.random() - 0.5) * 0.06,
+        c: chars[Math.floor(Math.random() * chars.length)]
+      });
+    }
+
+    var start = Date.now();
+    var DURATION = 8000;
+
+    function frame() {
+      var elapsed = Date.now() - start;
+      if (elapsed >= DURATION) {
+        canvas.remove();
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // 后半段渐隐
+      var fade = elapsed > DURATION * 0.6
+        ? 1 - (elapsed - DURATION * 0.6) / (DURATION * 0.4) : 1;
+      ctx.globalAlpha = Math.max(0, fade);
+      parts.forEach(function (p) {
+        p.y += p.v;
+        p.a += p.rot;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.a);
+        ctx.font = p.s + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.c, 0, 0);
+        ctx.restore();
+      });
+      requestAnimationFrame(frame);
+    }
+    frame();
+    UI.toast('暖场特效开始');
+  }
+
   /* ==================== 舞台切换 ==================== */
 
   function switchStage(stage) {
     currentStage = stage;
-    ['wall', 'lottery', 'game'].forEach(function (k) {
+    ['wall', 'lottery', 'game', 'vote', 'story'].forEach(function (k) {
       $('panel' + k.charAt(0).toUpperCase() + k.slice(1))
         .classList.toggle('active', k === stage);
     });
@@ -860,6 +1051,8 @@
       if (e.key === '1') switchStage('wall');
       else if (e.key === '2') switchStage('lottery');
       else if (e.key === '3') switchStage('game');
+      else if (e.key === '4') switchStage('vote');
+      else if (e.key === '5') switchStage('story');
       else if (e.code === 'Space') {
         e.preventDefault();
         if (currentStage === 'lottery') {
@@ -896,7 +1089,34 @@
       : '⚠ 背景音乐需要「服务器模式」：双击 deploy.bat 后用局域网地址打开大屏';
 
     renderPrizeEditor(s.config.prizes);
+    renderTimelineEditor(s.timeline || []);
     $('settingsModal').classList.remove('hidden');
+  }
+
+  function renderTimelineEditor(items) {
+    var rows = items.length ? items : [{ id: 'new1', year: '', title: '', desc: '' }];
+    var html = rows.map(function (t, i) {
+      return '<div class="tl-row" data-idx="' + i + '">' +
+        '<input class="tl-year" value="' + UI.escapeHtml(t.year || '') + '" placeholder="年份" maxlength="8">' +
+        '<input class="tl-title" value="' + UI.escapeHtml(t.title || '') + '" placeholder="标题，如：相遇">' +
+        '<input class="tl-desc" value="' + UI.escapeHtml(t.desc || '') + '" placeholder="一句话描述" maxlength="30">' +
+        '<button class="tl-del" data-del="' + i + '" title="删除">×</button>' +
+        '</div>';
+    }).join('');
+    $('timelineEditor').innerHTML = html;
+  }
+
+  function collectTimeline() {
+    var rows = [].slice.call(document.querySelectorAll('#timelineEditor .tl-row'));
+    return rows.map(function (r) {
+      return {
+        year: r.querySelector('.tl-year').value,
+        title: r.querySelector('.tl-title').value,
+        desc: r.querySelector('.tl-desc').value
+      };
+    }).filter(function (t) {
+      return t.year || t.title || t.desc;
+    }).slice(0, 12);
   }
 
   function renderPhotoThumbs() {
@@ -950,6 +1170,20 @@
       renderPrizeEditor(prizes);
     });
 
+    // 恋爱大事记：添加 / 删除
+    $('btnAddTimeline').addEventListener('click', function () {
+      var items = collectTimeline();
+      items.push({ year: '', title: '', desc: '' });
+      renderTimelineEditor(items);
+    });
+    $('timelineEditor').addEventListener('click', function (e) {
+      var del = e.target.getAttribute && e.target.getAttribute('data-del');
+      if (del == null) return;
+      var items = collectTimeline();
+      items.splice(parseInt(del, 10), 1);
+      renderTimelineEditor(items);
+    });
+
     $('prizeEditor').addEventListener('click', function (e) {
       var del = e.target.getAttribute && e.target.getAttribute('data-del');
       if (del == null) return;
@@ -986,6 +1220,8 @@
         music: pendingMusic,
         prizes: prizes
       });
+
+      A.setTimeline(store, collectTimeline());
 
       if (!prizes.filter(function (p) { return p.id === currentPrizeId; }).length) {
         currentPrizeId = prizes[0].id;

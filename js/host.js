@@ -192,6 +192,27 @@
         UI.toast(next ? '弹幕已开启' : '弹幕已关闭');
       });
     });
+
+    // 现场投票（M3-1）：预设主题一键发起
+    document.querySelectorAll('.h-btn[data-vote]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        withAuth(function () {
+          var parts = btn.getAttribute('data-vote').split('|');
+          var options = parts.slice(1).map(function (t, i) {
+            return { id: 'o' + (i + 1), text: t };
+          });
+          A.startVote(store, { question: parts[0], options: options });
+          A.setStage(store, 'vote');
+          UI.toast('投票已发起：' + parts[0]);
+        });
+      });
+    });
+    $('btnEndVoteHost').addEventListener('click', function () {
+      withAuth(function () {
+        A.endVote(store);
+        UI.toast('投票已结束');
+      });
+    });
   }
 
   bind();

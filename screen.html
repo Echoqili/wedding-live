@@ -58,6 +58,8 @@
           <div class="lottery-actions">
             <button class="btn btn-gold btn-lg" id="btnDraw">开始抽奖</button>
             <button class="btn btn-ghost" id="btnRedraw">重抽本轮</button>
+            <button class="btn btn-ghost" id="btnHeartRain" title="爱心雨暖场">💗 爱心雨</button>
+            <button class="btn btn-ghost" id="btnRedPacket" title="红包雨暖场">🧧 红包雨</button>
             <span class="lottery-hint">快捷键：空格</span>
           </div>
 
@@ -78,6 +80,45 @@
           </div>
           <div class="game-empty" id="gameEmpty">
             宾客扫码签到后即可参与<br>30 秒内疯狂摇动手机，大屏实时排名
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 现场投票（M3-1） ============ -->
+      <section class="panel" id="panelVote">
+        <div class="vote-panel">
+          <div class="vote-empty" id="voteEmpty">
+            <div class="big">🗳️</div>
+            <p>等待主持人发起投票</p>
+            <p style="font-size:.9rem;opacity:.7">可在主持控台一键发起（伴娘团 / 敬酒等主题）</p>
+          </div>
+          <div id="voteBody" class="hidden">
+            <div class="vote-heading">
+              <div class="vote-badge" id="voteBadge">投票进行中</div>
+              <div class="vote-question" id="voteQuestion">现场投票</div>
+              <div class="vote-count" id="voteCount">0 人已投</div>
+            </div>
+            <div class="vote-options" id="voteOptions"></div>
+            <div class="lottery-actions">
+              <button class="btn btn-ghost" id="btnEndVote">结束投票</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 恋爱大事记（M3-2） ============ -->
+      <section class="panel" id="panelStory">
+        <div class="story-panel">
+          <div class="story-empty" id="storyEmpty">
+            <div class="big">📖</div>
+            <p>还没有编辑恋爱大事记</p>
+            <p style="font-size:.9rem;opacity:.7">大屏 ⚙ 设置 → 恋爱大事记 里添加故事后自动轮播</p>
+          </div>
+          <div id="storyBody" class="hidden">
+            <div class="story-year" id="storyYear"></div>
+            <div class="story-title" id="storyTitle"></div>
+            <div class="story-desc" id="storyDesc"></div>
+            <div class="story-dots" id="storyDots"></div>
           </div>
         </div>
       </section>
@@ -135,6 +176,8 @@
     <button class="stage-tab active" data-stage="wall">签到墙<span class="kbd">1</span></button>
     <button class="stage-tab" data-stage="lottery">幸运抽奖<span class="kbd">2</span></button>
     <button class="stage-tab" data-stage="game">摇一摇<span class="kbd">3</span></button>
+    <button class="stage-tab" data-stage="vote">现场投票<span class="kbd">4</span></button>
+    <button class="stage-tab" data-stage="story">恋爱故事<span class="kbd">5</span></button>
   </div>
 
   <!-- 设置弹窗 -->
@@ -221,6 +264,15 @@
         <label>奖项设置</label>
         <div id="prizeEditor"></div>
         <button class="btn btn-ghost btn-sm" id="btnAddPrize" style="margin-top:.5rem">+ 添加奖项</button>
+      </div>
+
+      <div class="field" style="margin-top:1.2rem">
+        <label>📖 恋爱大事记（仪式候场轮播）</label>
+        <div id="timelineEditor"></div>
+        <button class="btn btn-ghost btn-sm" id="btnAddTimeline" style="margin-top:.5rem">+ 添加一条</button>
+        <div class="m-tip" style="font-size:.75rem;color:rgba(255,248,240,.5);margin-top:.35rem">
+          大屏「恋爱故事」舞台自动轮播；最多 12 条
+        </div>
       </div>
 
       <div class="field" style="margin-top:1.2rem">

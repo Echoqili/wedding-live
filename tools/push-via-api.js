@@ -20,9 +20,9 @@ if (!owner || !repo || !branch || !message) {
 
 const FILES = [
   'README.md', 'ROADMAP.md', 'WEDDING-RUNBOOK.md', 'deploy.bat', 'deploy.sh',
-  'css/screen.css', 'js/screen.js', 'js/store.js', 'js/ui.js', 'js/host.js',
-  'screen.html', 'server.js',
-  'tools/verify/smoke-m2.js', 'tools/verify/smoke-passcode.js',
+  'css/screen.css', 'css/mobile.css', 'js/screen.js', 'js/store.js', 'js/ui.js',
+  'js/host.js', 'js/mobile.js', 'screen.html', 'mobile.html', 'host.html', 'server.js',
+  'tools/verify/smoke-m2.js', 'tools/verify/smoke-passcode.js', 'tools/verify/smoke-m3.js',
   'tools/push-via-api.js'
 ];
 

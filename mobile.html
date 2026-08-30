@@ -49,6 +49,7 @@
     <div class="m-wrap">
       <div class="m-tabs">
         <button class="m-tab active" data-tab="bless">送祝福</button>
+        <button class="m-tab" data-tab="vote">投票</button>
         <button class="m-tab" data-tab="game">摇一摇</button>
         <button class="m-tab" data-tab="me">我的</button>
       </div>
@@ -67,6 +68,18 @@
         <div class="m-card">
           <h3>📜 我的祝福</h3>
           <div id="myBlessList"><div class="m-tip">还没有发送过祝福</div></div>
+        </div>
+      </section>
+
+      <!-- 现场投票（M3-1） -->
+      <section class="m-panel" id="tabVote">
+        <div class="m-card">
+          <h3>🗳️ 现场投票</h3>
+          <div id="voteStatus" class="m-tip">投票还没开始</div>
+          <div id="voteQuestionBox" class="hidden"
+               style="font-size:1.15rem;font-weight:700;color:var(--wine);margin:.8rem 0 .4rem"></div>
+          <div id="voteOpts" style="margin-top:.4rem"></div>
+          <div class="m-tip" id="voteTip" style="margin-top:.8rem"></div>
         </div>
       </section>
 

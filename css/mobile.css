@@ -252,6 +252,38 @@ body.mobile {
 .m-panel { display: none; }
 .m-panel.active { display: block; animation: fadeInUp .35s ease both; }
 
+/* ------------------------------ 投票（M3-1） ------------------------------ */
+
+.vote-opt-btn {
+  width: 100%;
+  padding: .9rem 1rem;
+  border-radius: var(--radius);
+  background: #fff;
+  border: 1.5px solid #f0dcdc;
+  color: var(--ink);
+  font-size: 1rem;
+  margin-bottom: .6rem;
+  transition: all .18s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.vote-opt-btn:active { transform: scale(.98); }
+.vote-opt-btn.sel {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border-color: transparent;
+  color: #4a3311;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, .35);
+}
+.vote-opt-btn .vcount {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.vote-opt-btn.sel .vcount { color: #6b4d0e; }
+
 /* ------------------------------ 摇一摇 ------------------------------ */
 
 .shake-zone {

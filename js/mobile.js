@@ -101,6 +101,7 @@
     renderQuickList();
     bindSignin();
     bindBless();
+    bindVoteM();
     bindGame();
     bindMe();
     bindTabs();
@@ -117,6 +118,7 @@
       renderHeader();
       if (me) {
         renderMyBlessings();
+        renderVoteM();
         renderGameState();
         renderMe();
       }
@@ -296,6 +298,75 @@
         '<div class="t">' + UI.formatTime(b.ts) +
         (b.approved ? ' · 已上墙' : ' · 等待审核') + '</div></div>';
     }).join('');
+  }
+
+  /* ==================== 现场投票（M3-1） ==================== */
+
+  var voteKeyM = '';
+
+  function renderVoteM() {
+    if (!me) return;
+    var s = store.getState();
+    var v = s.vote || {};
+    var st = $('voteStatus');
+    var qb = $('voteQuestionBox');
+    var opts = $('voteOpts');
+    if (!st) return;
+
+    if (!v.options || !v.options.length) {
+      st.classList.remove('hidden');
+      st.textContent = '投票还没开始';
+      qb.classList.add('hidden');
+      opts.innerHTML = '';
+      voteKeyM = '';
+      $('voteTip').textContent = '';
+      return;
+    }
+
+    st.classList.add('hidden');
+    qb.classList.remove('hidden');
+    qb.textContent = v.question || '现场投票';
+
+    var myVote = v.votedBy[me.id];
+    var total = 0;
+    v.options.forEach(function (o) { total += v.counts[o.id] || 0; });
+    var order = v.options.slice().sort(function (a, b) {
+      return (v.counts[b.id] || 0) - (v.counts[a.id] || 0);
+    });
+
+    var key = (v.active ? 'A' : 'E') + '|' + (myVote || '') + '|' +
+      v.options.map(function (o) { return o.id + ':' + (v.counts[o.id] || 0); }).join(',');
+    if (key === voteKeyM) return;
+    voteKeyM = key;
+
+    opts.innerHTML = order.map(function (o) {
+      var n = v.counts[o.id] || 0;
+      var pct = total ? Math.round((n / total) * 100) : 0;
+      var isMe = myVote === o.id;
+      var suffix;
+      if (v.active) suffix = (isMe ? '✓ ' : '') + n + '票';
+      else suffix = n + '票 · ' + pct + '%';
+      return '<button class="vote-opt-btn' + (isMe ? ' sel' : '') + '" data-opt="' + o.id + '">' +
+        UI.escapeHtml(o.text) + '<span class="vcount">' + suffix + '</span></button>';
+    }).join('');
+
+    if (!v.active) {
+      $('voteTip').textContent = myVote ? '投票已结束，这是最终结果' : '投票已结束';
+    } else {
+      $('voteTip').textContent = myVote ? '已投，点其他选项可改投' : '点选你的答案，可随时改投';
+    }
+  }
+
+  function bindVoteM() {
+    $('voteOpts').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-opt]');
+      if (!btn) return;
+      if (!me) { UI.toast('请先签到'); return; }
+      var s = store.getState();
+      if (!s.vote || !s.vote.active) { UI.toast('投票已结束'); return; }
+      A.castVote(store, me.id, btn.getAttribute('data-opt'));
+      UI.toast('已投，可随时改投');
+    });
   }
 
   /* ==================== 摇一摇 ==================== */
@@ -549,7 +620,7 @@
       [].forEach.call(document.querySelectorAll('.m-tab'), function (t) {
         t.classList.toggle('active', t === tab);
       });
-      ['bless', 'game', 'me'].forEach(function (k) {
+      ['bless', 'vote', 'game', 'me'].forEach(function (k) {
         $('tab' + k.charAt(0).toUpperCase() + k.slice(1))
           .classList.toggle('active', k === name);
       });
