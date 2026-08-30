@@ -83,6 +83,14 @@
     bindSettings();
     bindKeys();
     renderQR();
+
+    // 把当前奖项固化到共享 state：主持控台由此知道大屏选的是哪个奖；
+    // ws 模式下这次写入同时完成服务端状态的初始化
+    var s0 = store.getState();
+    if (s0.config.prizes.length && !(s0.lottery && s0.lottery.prizeId)) {
+      A.setLotteryPrize(store, s0.config.prizes[0].id);
+    }
+
     render(true);
 
     store.subscribe(function () { render(false); });
@@ -106,6 +114,19 @@
       $('qrcode').innerHTML = '<div style="color:#a00;font-size:.8rem;padding:1rem">' +
         UI.escapeHtml(e.message) + '</div>';
     }
+
+    // 主持控台二维码（仅 ws 模式可用：控台依赖服务端同步）
+    var wsParam = new URLSearchParams(location.search).get('ws');
+    var hostWrap = $('hostQrWrap');
+    if (hostWrap) {
+      if (wsParam) {
+        var hostUrl = base + 'host.html?ws=' + encodeURIComponent(wsParam);
+        $('hostQr').innerHTML = QRCode.svg(hostUrl, { ecLevel: 'M', margin: 2 });
+        hostWrap.classList.remove('hidden');
+      } else {
+        hostWrap.classList.add('hidden');
+      }
+    }
   }
 
   /* ==================== 渲染主入口 ==================== */
@@ -113,18 +134,40 @@
   function render(first) {
     var s = store.getState();
     renderHeader(s);
+    syncDanmaku(s);
     renderWall(s, first);
     renderBlessings(s);
     renderStats(s);
+    syncStageControl(s);
+    syncLotteryControl(s);
     renderPrizeTabs(s);
     renderWinners(s);
     renderGame(s);
+  }
+
+  /**
+   * 舞台遥控（P0-4）：主持控台改 state.stage，大屏跟随切换。
+   * switchStage 内部会回写 state，回写后 stage 与 currentStage 相等，
+   * 不会形成切换循环。
+   */
+  function syncStageControl(s) {
+    if (s.stage && s.stage !== currentStage &&
+        ['wall', 'lottery', 'game'].indexOf(s.stage) >= 0) {
+      switchStage(s.stage);
+    }
   }
 
   function renderHeader(s) {
     $('groomName').textContent = s.config.groom || '新郎';
     $('brideName').textContent = s.config.bride || '新娘';
     $('weddingSub').textContent = s.config.date || 'WEDDING PARTY';
+  }
+
+  /** 弹幕开关以共享 state 为准（主持控台可切换），这里把状态同步到本地与按钮 */
+  function syncDanmaku(s) {
+    var want = !(s.config && s.config.danmaku === false);
+    danmakuOn = want;
+    $('btnDanmaku').style.opacity = want ? '1' : '.45';
   }
 
   function renderStats(s) {
@@ -399,10 +442,39 @@
 
   var rollPool = [];
 
+  /**
+   * 抽奖控制同步（P0-4）：rolling 与 prizeId 的「真相」在共享 state.lottery 里，
+   * 大屏本地按钮和主持控台手机都只是改 state，这里负责把状态落到 UI。
+   */
+  function syncLotteryControl(s) {
+    var wantRolling = !!(s.lottery && s.lottery.rolling);
+    var wantPrize = (s.lottery && s.lottery.prizeId) || currentPrizeId;
+
+    if (wantPrize !== currentPrizeId) {
+      currentPrizeId = wantPrize;
+      prizeTabsKey = ''; // 强制 tab 重绘
+      if (!wantRolling) $('rollBoard').innerHTML = '';
+    }
+
+    $('btnDraw').textContent = wantRolling ? '停止' : '开始抽奖';
+    $('btnDraw').classList.toggle('btn-gold', !wantRolling);
+    $('btnDraw').classList.toggle('btn-rose', wantRolling);
+
+    if (wantRolling !== rolling) {
+      rolling = wantRolling;
+      if (rolling) startRoll();
+      else stopRoll();
+    }
+  }
+
   function startRoll() {
     var s = store.getState();
     var prize = s.config.prizes.filter(function (p) { return p.id === currentPrizeId; })[0];
-    if (!prize) { UI.toast('请先在设置里配置奖项'); return; }
+    if (!prize) {
+      UI.toast('请先在设置里配置奖项');
+      A.setLotteryRolling(store, false); // 回滚状态，避免卡在"滚动中"
+      return;
+    }
 
     var used = {};
     s.winners.forEach(function (w) { used[w.guestId] = true; });
@@ -410,13 +482,9 @@
 
     if (!rollPool.length) {
       UI.toast('没有可抽取的宾客，请检查签到情况');
+      A.setLotteryRolling(store, false);
       return;
     }
-
-    rolling = true;
-    $('btnDraw').textContent = '停止';
-    $('btnDraw').classList.remove('btn-gold');
-    $('btnDraw').classList.add('btn-rose');
 
     var slots = Math.min(prize.count, rollPool.length);
     var board = $('rollBoard');
@@ -440,12 +508,10 @@
   }
 
   function stopRoll() {
-    if (!rolling) return;
+    // 用 rollTimer 判断是否真的在滚动：状态回滚路径（rolling 已为 false）不能误触 draw
+    if (!rollTimer) return;
     clearInterval(rollTimer);
-    rolling = false;
-    $('btnDraw').textContent = '开始抽奖';
-    $('btnDraw').classList.add('btn-gold');
-    $('btnDraw').classList.remove('btn-rose');
+    rollTimer = null;
 
     var winners = A.draw(store, currentPrizeId);
 
@@ -473,14 +539,18 @@
   }
 
   function bindLottery() {
+    // 大屏按钮只改共享 state，实际滚动由 syncLotteryControl 驱动；
+    // 这样主持控台手机改同一 state 也能遥控大屏
     $('btnDraw').addEventListener('click', function () {
-      if (rolling) stopRoll(); else startRoll();
+      var s = store.getState();
+      A.setLotteryRolling(store, !(s.lottery && s.lottery.rolling));
     });
 
     $('btnRedraw').addEventListener('click', function () {
-      if (rolling) { stopRoll(); return; }
+      if (rolling) return;
       if (!currentPrizeId) return;
       A.clearWinners(store, currentPrizeId);
+      A.setLotteryRolling(store, false);
       $('rollBoard').innerHTML = '';
       UI.toast('已清空本轮中奖记录');
     });
@@ -488,9 +558,7 @@
     $('prizeTabs').addEventListener('click', function (e) {
       var tab = e.target.closest('.prize-tab');
       if (!tab || rolling) return;
-      currentPrizeId = tab.getAttribute('data-prize');
-      $('rollBoard').innerHTML = '';
-      render(store.getState());
+      A.setLotteryPrize(store, tab.getAttribute('data-prize'));
     });
   }
 
@@ -694,9 +762,11 @@
     });
 
     $('btnDanmaku').addEventListener('click', function () {
-      danmakuOn = !danmakuOn;
-      $('btnDanmaku').style.opacity = danmakuOn ? '1' : '.45';
-      UI.toast(danmakuOn ? '弹幕已开启' : '弹幕已关闭');
+      // 走共享 state，主持控台与设置面板看到同一开关
+      var s = store.getState();
+      var next = !(s.config && s.config.danmaku === false);
+      A.updateConfig(store, { danmaku: next });
+      UI.toast(next ? '弹幕已开启' : '弹幕已关闭');
     });
 
     $('btnSettings').addEventListener('click', openSettings);
@@ -711,7 +781,8 @@
       else if (e.code === 'Space') {
         e.preventDefault();
         if (currentStage === 'lottery') {
-          if (rolling) stopRoll(); else startRoll();
+          var s = store.getState();
+          A.setLotteryRolling(store, !(s.lottery && s.lottery.rolling));
         } else if (currentStage === 'game') {
           $('btnStartGame').click();
         }
@@ -729,7 +800,7 @@
     $('cfgBride').value = s.config.bride || '';
     $('cfgSub').value = s.config.date || '';
     $('swReview').classList.toggle('on', !!s.config.needReview);
-    $('swDanmaku').classList.toggle('on', danmakuOn);
+    $('swDanmaku').classList.toggle('on', !(s.config && s.config.danmaku === false));
     renderPrizeEditor(s.config.prizes);
     $('settingsModal').classList.remove('hidden');
   }
@@ -803,11 +874,9 @@
         bride: ($('cfgBride').value || '新娘').trim(),
         date: ($('cfgSub').value || '').trim(),
         needReview: $('swReview').classList.contains('on'),
+        danmaku: $('swDanmaku').classList.contains('on'),
         prizes: prizes
       });
-
-      danmakuOn = $('swDanmaku').classList.contains('on');
-      $('btnDanmaku').style.opacity = danmakuOn ? '1' : '.45';
 
       if (!prizes.filter(function (p) { return p.id === currentPrizeId; }).length) {
         currentPrizeId = prizes[0].id;

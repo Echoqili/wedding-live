@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>主持控台</title>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/mobile.css">
+<style>
+  body { background: linear-gradient(180deg, #fffaf5, #fdf3f0); color: var(--ink); }
+  .h-header {
+    background: linear-gradient(135deg, var(--wine), #8a2c3c);
+    color: #fff; padding: 1.1rem 1.2rem; text-align: center;
+  }
+  .h-header .t { font-family: var(--font-serif); font-size: 1.25rem; letter-spacing: .1em; }
+  .h-header .s { font-size: .78rem; opacity: .75; margin-top: .25rem; letter-spacing: .2em; }
+  .h-wrap { padding: 1rem 1rem 2.5rem; max-width: 34rem; margin: 0 auto; }
+
+  .h-status {
+    display: flex; justify-content: space-around; text-align: center;
+    background: #fff; border-radius: var(--radius-lg); padding: .9rem 0;
+    box-shadow: 0 4px 16px rgba(150,90,100,.1); margin-bottom: 1rem;
+    border: 1px solid rgba(232,180,184,.28);
+  }
+  .h-status .num { font-size: 1.5rem; font-weight: 800; color: var(--wine); line-height: 1.2; }
+  .h-status .lbl { font-size: .72rem; color: var(--ink-soft); letter-spacing: .1em; }
+
+  .h-section { margin-bottom: 1rem; }
+  .h-section h3 {
+    margin: 0 0 .6rem; font-size: .92rem; color: var(--wine); letter-spacing: .08em;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .h-section h3 .hint { font-size: .72rem; color: #b39a9d; font-weight: 400; }
+
+  .h-grid { display: flex; gap: .6rem; }
+  .h-btn {
+    flex: 1; padding: .95rem .4rem; border-radius: var(--radius);
+    font-size: .95rem; font-weight: 600; text-align: center;
+    background: #fff; border: 1.5px solid #f0dcdc; color: var(--ink-soft);
+    transition: all .18s ease; letter-spacing: .04em;
+  }
+  .h-btn:active { transform: scale(.97); }
+  .h-btn.active {
+    background: linear-gradient(135deg, var(--wine), #8a2c3c);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 14px rgba(109,31,44,.3);
+  }
+  .h-btn.primary {
+    background: linear-gradient(135deg, #ffb3c1, var(--pink));
+    color: #fff; border-color: transparent;
+    box-shadow: 0 5px 16px rgba(255,143,163,.4);
+  }
+  .h-btn.gold {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: #4a3311; border-color: transparent;
+    box-shadow: 0 5px 16px rgba(212,175,55,.35);
+  }
+  .h-btn.danger { color: #c0392b; border-color: #f0c4c4; }
+  .h-btn:disabled { opacity: .45; box-shadow: none; }
+
+  .h-game-state {
+    text-align: center; padding: .8rem; border-radius: var(--radius);
+    background: #fff; border: 1px solid rgba(232,180,184,.28);
+    font-size: .95rem; color: var(--ink-soft); margin-bottom: .7rem;
+  }
+  .h-game-state.live { color: var(--pink); font-weight: 700; }
+
+  .h-pending {
+    display: none; padding: .8rem 1rem; border-radius: var(--radius);
+    background: #fff8e1; border: 1px solid #ffe08a; color: #8a6a1a;
+    font-size: .88rem; margin-bottom: 1rem; line-height: 1.6;
+  }
+  .h-pending.show { display: block; }
+</style>
+</head>
+<body>
+
+  <div class="h-header">
+    <div class="t" id="hdNames">婚礼主持控台</div>
+    <div class="s">HOST CONSOLE</div>
+  </div>
+
+  <div class="h-wrap">
+
+    <div class="h-status">
+      <div><div class="num" id="stGuests">0</div><div class="lbl">已签到</div></div>
+      <div><div class="num" id="stBless">0</div><div class="lbl">祝福</div></div>
+      <div><div class="num" id="stWinners">0</div><div class="lbl">中奖</div></div>
+      <div><div class="num" id="stPending">0</div><div class="lbl">待审核</div></div>
+    </div>
+
+    <div class="h-pending" id="pendingTip">
+      有祝福待审核，到大屏「祝福面板」逐条通过，或在设置里关闭审核模式。
+    </div>
+
+    <!-- 舞台切换 -->
+    <div class="h-section">
+      <h3>大屏画面 <span class="hint">点击切换大屏显示</span></h3>
+      <div class="h-grid">
+        <button class="h-btn" data-stage="wall">💒 签到墙</button>
+        <button class="h-btn" data-stage="lottery">🎁 抽奖</button>
+        <button class="h-btn" data-stage="game">🏃 摇一摇</button>
+      </div>
+    </div>
+
+    <!-- 抽奖控制 -->
+    <div class="h-section">
+      <h3>幸运抽奖 <span class="hint">开始后大屏滚动名单</span></h3>
+      <div class="h-grid" id="prizeBtns" style="margin-bottom:.6rem"></div>
+      <div class="h-grid">
+        <button class="h-btn primary" id="btnDrawToggle">开始滚动</button>
+        <button class="h-btn danger" id="btnRedraw">重抽本轮</button>
+      </div>
+    </div>
+
+    <!-- 游戏控制 -->
+    <div class="h-section">
+      <h3>摇一摇赛马</h3>
+      <div class="h-game-state" id="gameState">游戏未开始</div>
+      <div class="h-grid">
+        <button class="h-btn primary" id="btnGameStart">开始游戏（30秒）</button>
+        <button class="h-btn" id="btnGameReset">重置</button>
+      </div>
+    </div>
+
+    <!-- 弹幕 -->
+    <div class="h-section">
+      <h3>弹幕 <span class="hint">祝福飘屏开关</span></h3>
+      <div class="h-grid">
+        <button class="h-btn" id="btnDanmaku">弹幕：开</button>
+      </div>
+    </div>
+
+    <div class="m-tip" style="margin-top:1.4rem">
+      本页面为婚礼主持控台，操作会实时同步到大屏。<br>
+      请通过 <b>?ws=</b> 地址访问，且与大屏连同一 Wi-Fi。
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/remote-store.js"></script>
+  <script src="js/host.js"></script>
+</body>
+</html>

@@ -58,6 +58,10 @@ node server.js
 2. 大屏浏览器打开 `http://192.168.1.100:8080/screen.html`（**不要**带 `?ws=`，大屏单机模式更稳定）
 3. 宾客扫码后，地址自动带上 `?ws=` 参数，手机端走 WebSocket 同步
 4. 也可以单独把大屏也改成 `?ws=` 让所有端都连服务端（如果想让两台电脑分别投屏）
+5. **主持人手机**扫大屏右上角的「🎙 主持控台」二维码（或直接访问
+   `http://192.168.1.100:8080/host.html?ws=ws://192.168.1.100:8080`），
+   可遥控切画面、抽奖、游戏与弹幕开关
+6. 数据自动持久化到 `data/state.json`（头像在 `data/avatars/`），断电重启不丢
 
 > **网络提示**：部分酒店 Wi-Fi 做了 AP 隔离，宾客之间无法互访。遇到这种情况：
 > - 让酒店用手机开个 4G 热点
@@ -209,9 +213,12 @@ wedding-live/
 │   ├── store.js          数据层 + Actions（业务逻辑）
 │   ├── qrcode.js         纯本地二维码生成器（无 CDN 依赖）
 │   ├── ui.js             头像/心形布局/图片压缩/Toast
-│   ├── remote-store.js   WebSocket 版 Store（真机跨设备）
+│   ├── remote-store.js   WebSocket 版 Store（真机跨设备，含摇分轻量协议）
 │   ├── screen.js         大屏逻辑
-│   └── mobile.js         手机逻辑
+│   ├── mobile.js         手机逻辑
+│   └── host.js           主持控台逻辑（P0-4）
+│
+├── host.html             主持手机控台（P0-4）
 │
 ├── miniprogram/          微信小程序套壳
 │   ├── app.json
@@ -227,8 +234,10 @@ wedding-live/
 └── tools/verify/         自动化测试与验证
     ├── gen_js_matrix.js  生成二维码矩阵（Node 端）
     ├── compare_qr.py     与 Python qrcode 库交叉比对
-    ├── smoke.js          LocalStore 端到端冒烟测试
-    ├── smoke-ws.js       WebSocket 模式端到端测试
+    ├── smoke.js          LocalStore 端到端冒烟测试（22 项）
+    ├── smoke-ws.js       WebSocket 模式端到端测试（10 项）
+    ├── smoke-host.js     主持控台端到端测试（10 项）
+    ├── load.js           100 并发压测（P0-1 验收）
     └── shots/            测试截图
 ```
 

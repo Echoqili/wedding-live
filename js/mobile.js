@@ -31,6 +31,32 @@
   var me = null;               // { id, name, avatar }
   var selectedAvatar = null;
   var avatarPage = 0;
+  var isWsMode = !!(new URLSearchParams(location.search).get('ws'));
+
+  /**
+   * base64 头像外置上传（P0-1）。
+   * ws 模式下把 base64 图片 POST 到服务端落盘，state 里只存 URL，
+   * 200 位宾客的 state 由此从 ~1MB 降到 ~20KB。
+   * 上传失败时降级回 base64，保证签到永不因头像失败而阻塞。
+   */
+  function ensureAvatarUploaded(avatar) {
+    return new Promise(function (resolve) {
+      if (!avatar || avatar.length <= 12) { resolve(avatar); return; } // emoji 直接过
+      if (!isWsMode) { resolve(avatar); return; }                      // 单机模式保持 base64
+      fetch(location.origin + '/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: avatar })
+      }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (j) {
+        resolve(j.url || avatar);
+      }).catch(function () {
+        resolve(avatar); // 降级
+      });
+    });
+  }
 
   var QUICK_BLESSINGS = [
     '新婚快乐，百年好合！',
@@ -179,11 +205,18 @@
       if (!name) { UI.toast('请先填写名字'); $('inpName').focus(); return; }
       if (name.length > 12) name = name.slice(0, 12);
 
-      var guest = A.signIn(store, { name: name, avatar: selectedAvatar || UI.randomAvatar() });
-      saveMe({ id: guest.id, name: guest.name, avatar: guest.avatar });
-      UI.toast('签到成功，欢迎 ' + name + '！');
-      enterMain();
-      setupMotionIfNeeded();
+      var btn = this;
+      btn.disabled = true;
+      var avatar = selectedAvatar || UI.randomAvatar();
+
+      ensureAvatarUploaded(avatar).then(function (finalAvatar) {
+        var guest = A.signIn(store, { name: name, avatar: finalAvatar });
+        saveMe({ id: guest.id, name: guest.name, avatar: guest.avatar });
+        btn.disabled = false;
+        UI.toast('签到成功，欢迎 ' + name + '！');
+        enterMain();
+        setupMotionIfNeeded();
+      });
     });
 
     $('inpName').addEventListener('keydown', function (e) {

@@ -73,6 +73,13 @@
         self._lastSeq = msg.seq;
         self._state = msg.state;
         self._emit(true);
+      } else if (msg.type === 'scores') {
+        /* 摇分聚合广播（P0-1）：服务端每 200ms 推一次纯数字 map。
+           本地合并后通知订阅者，但不回推全量 state（否则形成回环）。 */
+        if (!self._state) return;
+        if (!self._state.game) self._state.game = { state: 'idle', scores: {} };
+        self._state.game.scores = msg.scores || {};
+        self._emit(true);
       } else if (msg.type === 'reset') {
         self._state = null;
         self._lastSeq = -1;
@@ -107,6 +114,25 @@
   };
 
   RemoteStore.prototype.getState = function () { return this._state; };
+
+  /**
+   * 摇分轻量通道（P0-1 核心）。
+   * 本地立即生效（乐观更新），但只上报 {type:'score', guestId, delta}，
+   * 全量 state 不参与——否则 50 人摇一摇每秒会有几百份 1MB 广播。
+   * 服务端聚合后每 200ms 广播一次 scores，在 onmessage 里合并回来。
+   */
+  RemoteStore.prototype.bump = function (guestId, delta) {
+    if (!this._state || !this._state.game || this._state.game.state !== 'running') return;
+    delta = delta || 1;
+    this._state.game.scores[guestId] = (this._state.game.scores[guestId] || 0) + delta;
+    this._emit(false);
+
+    if (this._connected && this._ws.readyState === WebSocket.OPEN) {
+      try {
+        this._ws.send(JSON.stringify({ type: 'score', guestId: guestId, delta: delta }));
+      } catch (e) { /* 摇分丢失可容忍，不做离线队列（避免重连后爆量） */ }
+    }
+  };
 
   RemoteStore.prototype.update = function (mutator, opts) {
     opts = opts || {};

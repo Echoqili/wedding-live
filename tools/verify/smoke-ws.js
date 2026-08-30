@@ -32,6 +32,16 @@ async function main() {
   const { chromium } = require('playwright');
   if (!fs.existsSync(SHOT_DIR)) fs.mkdirSync(SHOT_DIR, { recursive: true });
 
+  // 清空服务端可能残留的状态（上次压测/测试落盘的脏数据，P0-2 持久化的副作用）
+  const WS = require('ws');
+  await new Promise((resolve) => {
+    const clean = new WS(WS_URL);
+    clean.on('open', () => { clean.send(JSON.stringify({ type: 'reset' })); });
+    clean.on('message', () => resolve());
+    clean.on('close', resolve);
+    setTimeout(resolve, 1500);
+  });
+
   const browser = await chromium.launch();
 
   // 两个独立 context：localStorage 不互通 → 任何同步都必须走 ws

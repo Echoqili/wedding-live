@@ -1,6 +1,9 @@
 # 依赖
 node_modules/
 
+# 运行时数据（持久化状态与上传头像，不进版本库）
+data/
+
 # 测试产物
 tools/verify/shots/
 tools/verify/js_matrices.json

@@ -40,6 +40,8 @@
         title: '',
         // 祝福是否需要新人审核后才上墙
         needReview: false,
+        // 祝福弹幕飘屏开关（共享，主持控台可切换）
+        danmaku: true,
         // 单个抽奖奖项
         prizes: [
           { id: 'p1', name: '三等奖', count: 5 },
@@ -60,6 +62,11 @@
         startAt: 0,
         scores: {}              // { guestId: 次数 }
       },
+      // 抽奖控制（主持控台与大屏共享，P0-4）
+      lottery: {
+        rolling: false,         // true=滚动中，大屏据此启动/停止滚动动画
+        prizeId: null           // 当前选中的奖项 id
+      },
       // 大屏当前展示的模块，手机端可跟随
       stage: 'wall',            // wall | lottery | game
       updatedAt: 0
@@ -72,7 +79,7 @@
   function mergeState(base, incoming) {
     if (!incoming || typeof incoming !== 'object') return base;
     var out = clone(base);
-    ['config', 'game'].forEach(function (k) {
+    ['config', 'game', 'lottery'].forEach(function (k) {
       if (incoming[k] && typeof incoming[k] === 'object') {
         out[k] = Object.assign({}, out[k], incoming[k]);
       }
@@ -214,6 +221,17 @@
     this._emit(false);
   };
 
+  /**
+   * 摇分快捷通道。与 RemoteStore.bump 保持同名同义：
+   * Actions.bumpScore 会优先走这个方法。本地节流广播，行为与旧版一致。
+   */
+  LocalStore.prototype.bump = function (guestId, delta) {
+    this.update(function (s) {
+      if (s.game.state !== 'running') return;
+      s.game.scores[guestId] = (s.game.scores[guestId] || 0) + (delta || 1);
+    }, { throttle: true, persist: false });
+  };
+
   /* ------------------------------------------------------------------ */
   /* 业务动作（大屏和手机共用，避免两边写出不一致的逻辑）                  */
   /* ------------------------------------------------------------------ */
@@ -340,11 +358,36 @@
       });
     },
 
+    /**
+     * 摇分入口。若 store 实现了 bump()（RemoteStore），走轻量协议：
+     * 只上报 {guestId, delta}，由服务端聚合广播，避免全量 state 打爆带宽。
+     * LocalStore 也提供 bump()，保持两条路径行为一致。
+     */
     bumpScore: function (store, guestId, delta) {
+      if (typeof store.bump === 'function') {
+        store.bump(guestId, delta);
+        return;
+      }
       store.update(function (s) {
         if (s.game.state !== 'running') return;
         s.game.scores[guestId] = (s.game.scores[guestId] || 0) + (delta || 1);
       }, { throttle: true, persist: false });
+    },
+
+    /** 主持控台 / 大屏共用的抽奖滚动开关（走共享 state，见 P0-4） */
+    setLotteryRolling: function (store, rolling) {
+      store.update(function (s) {
+        if (!s.lottery) s.lottery = { rolling: false, prizeId: null };
+        s.lottery.rolling = rolling !== false;
+      });
+    },
+
+    /** 切换当前奖项（主持控台 / 大屏共用） */
+    setLotteryPrize: function (store, prizeId) {
+      store.update(function (s) {
+        if (!s.lottery) s.lottery = { rolling: false, prizeId: null };
+        s.lottery.prizeId = prizeId;
+      });
     },
 
     finishGame: function (store) {
